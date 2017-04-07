@@ -1,0 +1,38 @@
+﻿GRAMMAR:
+
+vesion 1:
+
+expression → literal
+           | unary
+           | binary
+           | grouping
+
+literal    → NUMBER | STRING | "true" | "false" | "nil"
+grouping   → "(" expression ")"
+unary      → ( "-" | "!" ) expression
+binary     → expression operator expression
+operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
+           | "+"  | "-"  | "*" | "/"
+
+version 2:
+
+expression → equality
+equality   → comparison ( ( "!=" | "==" ) comparison )*
+comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
+term       → factor ( ( "-" | "+" ) factor )*
+factor     → unary ( ( "/" | "*" ) unary )*
+unary      → ( "!" | "-" ) unary
+           | primary
+primary    → NUMBER | STRING | "false" | "true" | "nil"
+           | "(" expression ")"
+
+
+
+PRECEDENCE(highest first) AND ASSOCIATIVITY:
+
+Name	    Operators	Associates
+Unary	    ! -	        Right
+Factor	    / *	        Left
+Term	    - +	        Left
+Comparison	> >= < <=	Left
+Equality	== !=	    Left
