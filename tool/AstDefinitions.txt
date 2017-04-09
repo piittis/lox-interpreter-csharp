@@ -2,3 +2,5 @@
 Grouping : Expr expression
 Literal  : object value
 Unary    : Token op, Expr right
+Comma    : Expr left, Expr right
+Ternary  : Expr condition, Expr ifTrue, Expr ifFalse

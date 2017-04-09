@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Lox
 {
@@ -18,6 +19,11 @@ namespace Lox
             return Parenthesize(expr.op.lexeme, expr.left, expr.right);
         }
 
+        public string VisitCommaExpr(Expr.Comma expr)
+        {
+            return Parenthesize("comma", expr.left, expr.right);
+        }
+
         public string VisitGroupingExpr(Expr.Grouping expr)
         {
             return Parenthesize("group", expr.expression);
@@ -26,6 +32,11 @@ namespace Lox
         public string VisitLiteralExpr(Expr.Literal expr)
         {
             return expr.value.ToString();
+        }
+
+        public string VisitTernaryExpr(Expr.Ternary expr)
+        {
+            return $"({expr.cond.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)})";
         }
 
         public string VisitUnaryExpr(Expr.Unary expr)

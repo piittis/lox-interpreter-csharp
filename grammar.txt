@@ -16,7 +16,11 @@ operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
 
 version 2:
 
-expression → equality
+expression → binary_err
+binary_err → comma 
+           | ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+comma      → ternary ( "," ternary )*
+ternary    → equality | equality ? equality : equality
 equality   → comparison ( ( "!=" | "==" ) comparison )*
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term       → factor ( ( "-" | "+" ) factor )*
@@ -25,7 +29,6 @@ unary      → ( "!" | "-" ) unary
            | primary
 primary    → NUMBER | STRING | "false" | "true" | "nil"
            | "(" expression ")"
-
 
 
 PRECEDENCE(highest first) AND ASSOCIATIVITY:

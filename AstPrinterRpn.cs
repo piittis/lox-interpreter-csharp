@@ -20,6 +20,11 @@ namespace Lox
             return $"{expr.left.Accept(this)} {expr.right.Accept(this)} {expr.op.lexeme}";
         }
 
+        public string VisitCommaExpr(Expr.Comma expr)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitGroupingExpr(Expr.Grouping expr)
         {
             return expr.expression.Accept(this);
@@ -28,6 +33,11 @@ namespace Lox
         public string VisitLiteralExpr(Expr.Literal expr)
         {
             return expr.value.ToString();
+        }
+
+        public string VisitTernaryExpr(Expr.Ternary expr)
+        {
+            return $"{expr.cond.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)}";
         }
 
         public string VisitUnaryExpr(Expr.Unary expr)

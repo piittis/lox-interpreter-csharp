@@ -10,13 +10,6 @@ namespace Lox
         static void Main(string [] args)
         {
 
-
-           /* var expr = new Binary(new Unary(new Token(TokenType.MINUS, "-", null, 1), new Literal(123)),
-                                  new Token(TokenType.STAR, "*", null, 1),
-                                  new Grouping(new Literal(45.67)));
-
-            Console.WriteLine(new AstPrinterRpn().Print(expr));*/
-
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: jlox [script]");
@@ -58,9 +51,9 @@ namespace Lox
                 {
                     break;
                 }
-
             }
         }
+
         private static void Run(string source)
         {
             if (source == null)
@@ -73,15 +66,30 @@ namespace Lox
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
 
-            foreach (var token in tokens)
+            Parser parser = new Parser(tokens);
+            Expr expression = parser.Parse();
+
+            if (!hadError)
             {
-                Console.WriteLine(token);
+                Console.WriteLine(new AstPrinter().Print(expression));
             }
         }
 
         public static void Error(int line, string message)
         {
             Report(line, "", message);
+        }
+
+        public static void Error(Token token, String message)
+        {
+            if (token.type == TokenType.EOF)
+            {
+                Report(token.line, " at end", message);
+            }
+            else
+            {
+                Report(token.line, $" at '{token.lexeme}'", message);
+            }
         }
 
         private static void Report(int line, string where, string message)

@@ -57,6 +57,36 @@ namespace Lox
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitUnaryExpr(this); }
 
 	    }
+
+        public class Comma : Expr {
+
+            public Expr left;
+            public Expr right;
+
+            public Comma (Expr left, Expr right) {
+                this.left = left;
+                this.right = right;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitCommaExpr(this); }
+
+	    }
+
+        public class Ternary : Expr {
+
+            public Expr cond;
+            public Expr ifTrue;
+            public Expr ifFalse;
+
+            public Ternary (Expr cond, Expr ifTrue, Expr ifFalse) {
+                this.cond = cond;
+                this.ifTrue = ifTrue;
+                this.ifFalse = ifFalse;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitTernaryExpr(this); }
+
+	    }
     }
 
     interface IVisitor<T> {
@@ -64,5 +94,7 @@ namespace Lox
         T VisitGroupingExpr(Expr.Grouping expr);
         T VisitLiteralExpr(Expr.Literal expr);
         T VisitUnaryExpr(Expr.Unary expr);
+        T VisitCommaExpr(Expr.Comma expr);
+        T VisitTernaryExpr(Expr.Ternary expr);
     }
 }
