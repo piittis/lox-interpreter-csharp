@@ -1,4 +1,4 @@
-﻿# Lox-Interpreter-CSharp
+# Lox-Interpreter-CSharp
 
 My C# implementation for the tree-walk interpreter from http://www.craftinginterpreters.com/
 
@@ -7,8 +7,8 @@ Work in progress.
 Current state:
 - Scan, parse and interpret expressions.
 
-Grammar:
-
+#### Grammar:
+```
 expression → binary_err
 binary_err → comma 
            | ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
@@ -22,3 +22,4 @@ unary      → ( "!" | "-" ) unary
            | primary
 primary    → NUMBER | STRING | "false" | "true" | "nil"
            | "(" expression ")"
+```
