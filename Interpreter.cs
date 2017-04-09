@@ -1,12 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static Lox.TokenType;
 
 namespace Lox
 {
     class Interpreter : IVisitor<Object>
     {
+
+        public void Interpret(Expr expression)
+        {
+            try
+            {
+                object value = Evaluate(expression);
+                Console.WriteLine(Stringify(value));
+            } catch (RuntimeError error)
+            {
+                Lox.RuntimeError(error);
+            }
+        }
 
         public object VisitBinaryExpr(Expr.Binary expr)
         {
@@ -16,28 +26,38 @@ namespace Lox
             switch (expr.op.type)
             {
                 case GREATER:
+                    TypeCheckNumberOperands(expr.op, left, right);
                     return (double)left > (double)right;
                 case GREATER_EQUAL:
+                    TypeCheckNumberOperands(expr.op, left, right);
                     return (double)left >= (double)right;
                 case LESS:
+                    TypeCheckNumberOperands(expr.op, left, right);
                     return (double)left < (double)right;
                 case LESS_EQUAL:
+                    TypeCheckNumberOperands(expr.op, left, right);
                     return (double)left <= (double)right;
                 case MINUS:
+                    TypeCheckNumberOperands(expr.op, left, right);
                     return (double)left - (double)right;
                 case SLASH:
+                    TypeCheckNumberOperands(expr.op, left, right);
+                    if ((double)right == 0) throw new RuntimeError(expr.op, "Division by zero.");
                     return (double)left / (double)right;
                 case STAR:
+                    TypeCheckNumberOperands(expr.op, left, right);
                     return (double)left * (double)right;
                 case PLUS:
                     if (left is double && right is double) {
                         return (double)left + (double)right;
                     }
 
-                    if (left is String && right is String) {
-                        return (string)left + (string)right;
+                    if (left is string || right is string) {
+                        return left.ToString() + right.ToString();
                     }
-                    break;
+
+                    throw new RuntimeError(expr.op, "Operands must be numbers or one of them must be a string");
+
                 case BANG_EQUAL: return !IsEqual(left, right);
                 case EQUAL_EQUAL: return IsEqual(left, right);
             }
@@ -80,6 +100,7 @@ namespace Lox
                 case BANG:
                     return !IsTrue(right);
                 case MINUS:
+                    TypeCheckNumberOperand(expr.op, right);
                     return -(double)right;
             }
 
@@ -112,6 +133,25 @@ namespace Lox
             if (a == null) return false;
 
             return a.Equals(b);
+        }
+
+        private void TypeCheckNumberOperand(Token op, object operand)
+        {
+            if (operand is double) return;
+            throw new RuntimeError(op, "Operand must be a number.");
+        }
+
+        private void TypeCheckNumberOperands(Token op, object left, object right)
+        {
+            if (left is double && right is double) return;
+            throw new RuntimeError(op, "Operands must be numbers.");
+        }
+
+        private string Stringify(object obj)
+        {
+            if (obj == null) return "nil";
+
+            return obj.ToString();
         }
 
     }

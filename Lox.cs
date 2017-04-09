@@ -5,7 +5,9 @@ namespace Lox
 {
     class Lox
     {
-        private static bool hadError;
+        private static readonly Interpreter interpreter = new Interpreter();
+        private static bool hadError = false;
+        private static bool hadRuntimeError = false;
 
         static void Main(string [] args)
         {
@@ -29,10 +31,8 @@ namespace Lox
             string text = System.IO.File.ReadAllText(path);
             Run(text);
 
-            if (hadError)
-            {
-                Environment.Exit(65);
-            }
+            if (hadError) Environment.Exit(65);
+            if (hadRuntimeError) Environment.Exit(70);
         }
 
         private static void RunPrompt()
@@ -67,11 +67,11 @@ namespace Lox
             List<Token> tokens = scanner.ScanTokens();
 
             Parser parser = new Parser(tokens);
-            Expr expression = parser.Parse();
+            Expr expression = parser.Parse();        
 
             if (!hadError)
             {
-                Console.WriteLine(new AstPrinter().Print(expression));
+                interpreter.Interpret(expression);
             }
         }
 
@@ -90,6 +90,12 @@ namespace Lox
             {
                 Report(token.line, $" at '{token.lexeme}'", message);
             }
+        }
+
+        public static void RuntimeError(RuntimeError error)
+        {
+            Console.Error.WriteLine($"{error.Message} \n[line {error.token.line}]");
+            hadRuntimeError = true;
         }
 
         private static void Report(int line, string where, string message)

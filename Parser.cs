@@ -58,8 +58,6 @@ namespace Lox
             }
         }
 
-        #region tree generation
-
         private Expr Expression()
         {
             return BinaryError();
@@ -197,10 +195,6 @@ namespace Lox
             throw Error(Peek(), "Expect expression.");
         }
 
-        #endregion
-
-        #region private
-
         /// <summary>
         /// Discards tokens until a beginning of a statement is found.
         /// Used to synchronize the parser after catching ParseError.
@@ -298,8 +292,6 @@ namespace Lox
         {
             return tokens[current - 1];
         }
-
-        #endregion
 
     }
 }
