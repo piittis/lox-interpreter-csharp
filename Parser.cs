@@ -96,10 +96,10 @@ namespace Lox
             if (Match(QUESTION_MARK))
             {
                 Expr condition = expr;
-                Expr ifTrue = Equality();
+                Expr ifTrue = Expression();
                 if (Match(COLON))
                 {
-                    Expr ifFalse = Equality();
+                    Expr ifFalse = Expression();
                     expr = new Expr.Ternary(condition, ifTrue, ifFalse);
                 }
                 else
@@ -177,12 +177,13 @@ namespace Lox
 
         private Expr Primary()
         {
+
+            if (Match(out Token matchedToken, NUMBER, STRING))
+                return new Expr.Literal(matchedToken.literal);
+
             if (Match(FALSE)) return new Expr.Literal(false);
             if (Match(TRUE)) return new Expr.Literal(true);
-            if (Match(FALSE)) return new Expr.Literal(null);
-
-            if (Match(out Token token, NUMBER, STRING))
-                return new Expr.Literal(token.literal);
+            if (Match(NIL)) return new Expr.Literal(null);
 
             if (Match(LEFT_PAREN))
             {
@@ -197,6 +198,7 @@ namespace Lox
 
         /// <summary>
         /// Discards tokens until a beginning of a statement is found.
+        /// Aka panic mode.
         /// Used to synchronize the parser after catching ParseError.
         /// </summary>
         private void Synchronize()

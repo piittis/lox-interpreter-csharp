@@ -10,10 +10,10 @@ Current state:
 #### Grammar:
 ```
 expression → binary_err
-binary_err → comma 
-           | ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+binary_err → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+           | comma
 comma      → ternary ( "," ternary )*
-ternary    → equality | equality ? equality : equality
+ternary    → equality ( "?" expression ":" expression )?
 equality   → comparison ( ( "!=" | "==" ) comparison )*
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term       → factor ( ( "-" | "+" ) factor )*

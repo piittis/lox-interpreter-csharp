@@ -1,6 +1,6 @@
 ﻿GRAMMAR:
 
-vesion 1:
+vesion 1(ambigious):
 
 expression → literal
            | unary
@@ -17,10 +17,10 @@ operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
 version 2:
 
 expression → binary_err
-binary_err → comma 
-           | ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+binary_err → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+           | comma
 comma      → ternary ( "," ternary )*
-ternary    → equality | equality ? equality : equality
+ternary    → equality ( "?" expression ":" expression )?
 equality   → comparison ( ( "!=" | "==" ) comparison )*
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term       → factor ( ( "-" | "+" ) factor )*
