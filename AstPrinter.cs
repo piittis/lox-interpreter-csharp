@@ -6,12 +6,17 @@ namespace Lox
     /// <summary>
     /// generates a string representation for different expressions
     /// </summary>
-    class AstPrinter : IVisitor<string>
+    class AstPrinter : Expr.IVisitor<string>
     {
 
         public string Print(Expr expr)
         {
             return expr.Accept(this);
+        }
+
+        public string VisitAssignExpr(Expr.Assign expr)
+        {
+            return $"({expr.name} <- {expr.value.Accept(this)})";
         }
 
         public string VisitBinaryExpr(Expr.Binary expr)
@@ -36,12 +41,17 @@ namespace Lox
 
         public string VisitTernaryExpr(Expr.Ternary expr)
         {
-            return $"({expr.cond.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)})";
+            return $"({expr.condition.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)})";
         }
 
         public string VisitUnaryExpr(Expr.Unary expr)
         {
             return Parenthesize(expr.op.lexeme, expr.right);
+        }
+
+        public string VisitVariableExpr(Expr.Variable expr)
+        {
+            return $"({expr.name})";
         }
 
         private string Parenthesize(string name, params Expr[] exprs)

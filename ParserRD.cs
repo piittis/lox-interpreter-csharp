@@ -6,27 +6,11 @@ using static Lox.TokenType;
 namespace Lox
 {
 
-    /*  GRAMMAR:
-     *
-     *  expression → binary_err
-     *  binary_err → comma 
-     *             | ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
-     *  comma      → ternary ( "," ternary )*
-     *  ternary    → equality | equality ? equality : equality
-     *  equality   → comparison ( ( "!=" | "==" ) comparison )*      
-     *  comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
-     *  term       → factor ( ( "-" | "+" ) factor )*
-     *  factor     → unary ( ( "/" | "*" ) unary )*
-     *  unary      → ( "!" | "-" ) unary
-     *              | primary
-     *  primary    → NUMBER | STRING | "false" | "true" | "nil"
-     *              | "(" expression ")"
-     */
 
     /// <summary>
     /// Recursive descent parser
     /// </summary>
-    class Parser
+    class ParserRD
     {
         // As the parsing is recursive, to get out of error situations we need to unwind
         // stack to get the parser to a state where it can continue parsing again.
@@ -41,26 +25,108 @@ namespace Lox
         private readonly List<Token> tokens;
         private int current = 0;
 
-        public Parser(List<Token> tokens)
+        public ParserRD(List<Token> tokens)
         {
             this.tokens = tokens;
         }
         
-        public Expr Parse()
+        public List<Stmt> Parse()
+        {
+            var statements = new List<Stmt>();
+            while (!IsAtEnd())
+            {
+                statements.Add(Declaration());
+            }
+
+            return statements;
+        }
+
+        private Stmt Declaration()
         {
             try
             {
-                return Expression();
-            }
-            catch (ParseError error)
+                if (Match(VAR))
+                {
+                    return VarDeclaration();
+                }
+
+                return Statement();
+            } catch (ParseError)
             {
+                Synchronize();
                 return null;
             }
+        }
+
+        private Stmt VarDeclaration()
+        {
+            Token name = Consume(IDENTIFIER, "Expect variable name.");
+
+            Expr initializer = null;
+            if (Match(EQUAL))
+            {
+                initializer = Expression();
+            }
+
+            Consume(SEMICOLON, "Expect ';' after variable declaration.");
+            return new Stmt.Var(name, initializer);
+        }
+
+        private Stmt Statement()
+        {
+            if (Match(PRINT)) return PrintStatement();
+            if (Match(LEFT_BRACE)) return Block();
+            return ExpressionStatement();
+        }
+
+        private Stmt ExpressionStatement()
+        {
+            Expr expr = Expression();
+            Consume(SEMICOLON, "Expect ';' after expression.");
+            return new Stmt.Expression(expr);
+        }
+
+        private Stmt PrintStatement()
+        {
+            Expr value = Expression();
+            Consume(SEMICOLON, "Expect ';' after value.");
+            return new Stmt.Print(value);
+        }
+
+        private Stmt Block()
+        {
+            var statements = new List<Stmt>();
+            while (!IsCurrentTokenType(RIGHT_BRACE) && !IsAtEnd())
+            {
+                statements.Add(Declaration());
+            }
+            Consume(RIGHT_BRACE, "Expect '}' after block.");
+            return new Stmt.Block(statements);
         }
 
         private Expr Expression()
         {
             return BinaryError();
+        }
+
+        private Expr Assignment()
+        {
+            Expr expr = BinaryError();
+
+            if (Match(EQUAL))
+            {
+                Token equals = Previous();
+                Expr value = Assignment();
+                // Convert from rvalue to lvalue.
+                if (expr is Expr.Variable variable)
+                {
+                    Token name = variable.name;
+                    return new Expr.Assign(name, value);
+                }
+                Error(equals, "Invalid assignment target.");
+            }
+
+            return expr;
         }
 
         private Expr BinaryError()
@@ -97,15 +163,9 @@ namespace Lox
             {
                 Expr condition = expr;
                 Expr ifTrue = Expression();
-                if (Match(COLON))
-                {
-                    Expr ifFalse = Expression();
-                    expr = new Expr.Ternary(condition, ifTrue, ifFalse);
-                }
-                else
-                {
-                    throw Error(Peek(), "Expecting ':'");
-                }
+                Consume(COLON, "Expecting ':'");         
+                Expr ifFalse = Expression();
+                expr = new Expr.Ternary(condition, ifTrue, ifFalse);               
             }
 
             return expr;
@@ -184,6 +244,8 @@ namespace Lox
             if (Match(FALSE)) return new Expr.Literal(false);
             if (Match(TRUE)) return new Expr.Literal(true);
             if (Match(NIL)) return new Expr.Literal(null);
+
+            if (Match(IDENTIFIER)) return new Expr.Variable(Previous());
 
             if (Match(LEFT_PAREN))
             {

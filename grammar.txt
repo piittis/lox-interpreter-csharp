@@ -1,34 +1,35 @@
-﻿GRAMMAR:
+﻿program     → declaration* EOF ;
 
-vesion 1(ambigious):
+declaration → varDecl
+            | statement ;
 
-expression → literal
-           | unary
-           | binary
-           | grouping
+varDecl     → "var" IDENTIFIER ( "=" expression )? ";" ;
 
-literal    → NUMBER | STRING | "true" | "false" | "nil"
-grouping   → "(" expression ")"
-unary      → ( "-" | "!" ) expression
-binary     → expression operator expression
-operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
-           | "+"  | "-"  | "*" | "/"
+statement   → exprStmt
+            | printStmt
+			| block ;
 
-version 2:
+exprStmt    → expression ";" ;
+printStmt   → "print" expression ";" ;
+block       → "{" declaration* "}" ;
 
-expression → binary_err
-binary_err → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
-           | comma
-comma      → ternary ( "," ternary )*
-ternary    → equality ( "?" expression ":" expression )?
-equality   → comparison ( ( "!=" | "==" ) comparison )*
-comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
-term       → factor ( ( "-" | "+" ) factor )*
-factor     → unary ( ( "/" | "*" ) unary )*
-unary      → ( "!" | "-" ) unary
-           | primary
-primary    → NUMBER | STRING | "false" | "true" | "nil"
-           | "(" expression ")"
+expression  → assignment ;
+assignment  → identifier "=" assignment
+            | binary_err ;
+binary_err  → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+            | comma ;
+comma       → ternary ( "," ternary )* ;
+ternary     → equality ( "?" expression ":" expression )? ;
+equality    → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison  → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term        → factor ( ( "-" | "+" ) factor )* ;
+factor      → unary ( ( "/" | "*" ) unary )* ;
+unary       → ( "!" | "-" ) unary
+            | primary ;
+primary     → "true" | "false" | "null" | "this"
+            | NUMBER | STRING
+            | "(" expression ")"
+		    | IDENTIFIER ;
 
 
 PRECEDENCE(highest first) AND ASSOCIATIVITY:

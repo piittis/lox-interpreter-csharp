@@ -1,0 +1,8 @@
+﻿Assign   : Token name, Expr value
+Binary   : Expr left, Token op, Expr right
+Grouping : Expr expression
+Literal  : object value
+Unary    : Token op, Expr right
+Comma    : Expr left, Expr right
+Ternary  : Expr condition, Expr ifTrue, Expr ifFalse
+Variable : Token name

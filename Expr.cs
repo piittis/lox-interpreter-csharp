@@ -1,8 +1,35 @@
 namespace Lox
 {
-    abstract class Expr 
-    { 
-        public abstract T Accept<T>(IVisitor<T> visitor);
+	using System.Collections.Generic;
+
+	abstract class Expr 
+	{ 
+		public abstract T Accept<T>(IVisitor<T> visitor);
+
+        public interface IVisitor<T> {
+            T VisitAssignExpr(Assign expr);
+            T VisitBinaryExpr(Binary expr);
+            T VisitGroupingExpr(Grouping expr);
+            T VisitLiteralExpr(Literal expr);
+            T VisitUnaryExpr(Unary expr);
+            T VisitCommaExpr(Comma expr);
+            T VisitTernaryExpr(Ternary expr);
+            T VisitVariableExpr(Variable expr);
+        }
+
+        public class Assign : Expr {
+
+            public Token name;
+            public Expr value;
+
+            public Assign (Token name, Expr value) {
+                this.name = name;
+                this.value = value;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitAssignExpr(this); }
+
+	    }
 
         public class Binary : Expr {
 
@@ -74,12 +101,12 @@ namespace Lox
 
         public class Ternary : Expr {
 
-            public Expr cond;
+            public Expr condition;
             public Expr ifTrue;
             public Expr ifFalse;
 
-            public Ternary (Expr cond, Expr ifTrue, Expr ifFalse) {
-                this.cond = cond;
+            public Ternary (Expr condition, Expr ifTrue, Expr ifFalse) {
+                this.condition = condition;
                 this.ifTrue = ifTrue;
                 this.ifFalse = ifFalse;
             }
@@ -87,14 +114,18 @@ namespace Lox
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitTernaryExpr(this); }
 
 	    }
+
+        public class Variable : Expr {
+
+            public Token name;
+
+            public Variable (Token name) {
+                this.name = name;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitVariableExpr(this); }
+
+	    }
     }
 
-    interface IVisitor<T> {
-        T VisitBinaryExpr(Expr.Binary expr);
-        T VisitGroupingExpr(Expr.Grouping expr);
-        T VisitLiteralExpr(Expr.Literal expr);
-        T VisitUnaryExpr(Expr.Unary expr);
-        T VisitCommaExpr(Expr.Comma expr);
-        T VisitTernaryExpr(Expr.Ternary expr);
-    }
 }

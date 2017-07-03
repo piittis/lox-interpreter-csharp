@@ -31,8 +31,8 @@ namespace Lox
             string text = System.IO.File.ReadAllText(path);
             Run(text);
 
-            if (hadError) Environment.Exit(65);
-            if (hadRuntimeError) Environment.Exit(70);
+            if (hadError) System.Environment.Exit(65);
+            if (hadRuntimeError) System.Environment.Exit(70);
         }
 
         private static void RunPrompt()
@@ -61,17 +61,17 @@ namespace Lox
                 return;
             }
 
-            Console.WriteLine($"running: {source}");
+            Console.WriteLine($"running:\n{source}");
 
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
 
-            Parser parser = new Parser(tokens);
-            Expr expression = parser.Parse();        
+            ParserRD parser = new ParserRD(tokens);
+            List<Stmt> statements = parser.Parse();        
 
             if (!hadError)
             {
-                interpreter.Interpret(expression);
+                interpreter.Interpret(statements);
             }
         }
 

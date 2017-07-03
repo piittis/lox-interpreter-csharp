@@ -1,17 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using static Lox.TokenType;
 
 namespace Lox
 {
-    class Interpreter : IVisitor<Object>
+    class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object>
     {
 
-        public void Interpret(Expr expression)
+        private Environment environment = new Environment();
+
+        public void Interpret(List<Stmt> statements)
         {
             try
             {
-                object value = Evaluate(expression);
-                Console.WriteLine(Stringify(value));
+                foreach (var statement in statements)
+                {
+                    Execute(statement);
+                }
             } catch (RuntimeError error)
             {
                 Lox.RuntimeError(error);
@@ -84,7 +89,7 @@ namespace Lox
 
         public object VisitTernaryExpr(Expr.Ternary expr)
         {
-            if (IsTrue(Evaluate(expr.cond)))
+            if (IsTrue(Evaluate(expr.condition)))
             {
                 return Evaluate(expr.ifTrue);
             }
@@ -108,9 +113,73 @@ namespace Lox
             return null;
         }
 
+        public object VisitVariableExpr(Expr.Variable expr)
+        {
+            return environment.Get(expr.name);
+        }
+
+        public object VisitAssignExpr(Expr.Assign expr)
+        {
+            object value = Evaluate(expr.value);
+            environment.Assign(expr.name, value);
+            return value;
+        }
+
+        public object VisitExpressionStmt(Stmt.Expression stmt)
+        {
+            Evaluate(stmt.expression);
+            return null;
+        }
+
+        public object VisitPrintStmt(Stmt.Print stmt)
+        {
+            Console.WriteLine(Stringify(Evaluate(stmt.expression)));
+            return null;
+        }
+
+        public object VisitVarStmt(Stmt.Var stmt)
+        {
+            Object value = null;
+            if (stmt.initializer != null)
+            {
+                value = Evaluate(stmt.initializer);
+            }
+            environment.Define(stmt.name.lexeme, value);
+            return null;
+        }
+
+        public object VisitBlockStmt(Stmt.Block stmt)
+        {
+            ExecuteBlock(stmt.statements);
+            return null;
+        }
+
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
+        }
+
+        private void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
+        }
+
+        private void ExecuteBlock(List<Stmt> statements)
+        {
+            // Create new scope for the block and discard it when done.
+            Environment prev = environment;
+            try
+            {
+                environment = new Environment(environment);
+                foreach(var statement in statements)
+                {
+                    Execute(statement);
+                }
+            }
+            finally
+            {
+                environment = prev;
+            }
         }
 
         private bool IsTrue(object obj)
