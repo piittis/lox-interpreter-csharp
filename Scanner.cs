@@ -207,6 +207,7 @@ namespace Lox
             if (IsAtEnd())
             {
                 Lox.Error(line, "Unterminated string.");
+                return;
             }
 
             // the closing "

@@ -14,7 +14,7 @@ printStmt   → "print" expression ";" ;
 block       → "{" declaration* "}" ;
 
 expression  → assignment ;
-assignment  → identifier "=" assignment
+assignment  → IDENTIFIER "=" assignment
             | binary_err ;
 binary_err  → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
             | comma ;

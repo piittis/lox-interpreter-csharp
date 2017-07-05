@@ -30,6 +30,9 @@ namespace Lox
             this.tokens = tokens;
         }
         
+        /// <summary>
+        /// Parses the tokens as a list of statements
+        /// </summary>
         public List<Stmt> Parse()
         {
             var statements = new List<Stmt>();
@@ -39,6 +42,21 @@ namespace Lox
             }
 
             return statements;
+        }
+
+        /// <summary>
+        /// Parses the tokens as a single expression
+        /// </summary>
+        public Expr ParseExpression()
+        {
+            try
+            {
+                return Expression();
+            }
+            catch(ParseError)
+            {
+                return null;
+            }
         }
 
         private Stmt Declaration()
@@ -106,11 +124,12 @@ namespace Lox
 
         private Expr Expression()
         {
-            return BinaryError();
+            return Assignment();
         }
 
         private Expr Assignment()
         {
+            
             Expr expr = BinaryError();
 
             if (Match(EQUAL))

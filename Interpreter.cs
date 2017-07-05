@@ -23,6 +23,19 @@ namespace Lox
             }
         }
 
+        public string EvaluateExpr(Expr expr)
+        {
+            try
+            {
+                return Stringify(Evaluate(expr));
+            }
+            catch (RuntimeError error)
+            {
+                Lox.RuntimeError(error);               
+            }
+            return null;
+        }
+
         public object VisitBinaryExpr(Expr.Binary expr)
         {
             Object left = Evaluate(expr.left);
@@ -139,7 +152,7 @@ namespace Lox
 
         public object VisitVarStmt(Stmt.Var stmt)
         {
-            Object value = null;
+            object value = Environment.unAssigned;
             if (stmt.initializer != null)
             {
                 value = Evaluate(stmt.initializer);

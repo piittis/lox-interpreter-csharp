@@ -8,6 +8,7 @@ namespace Lox
         private static readonly Interpreter interpreter = new Interpreter();
         private static bool hadError = false;
         private static bool hadRuntimeError = false;
+        private static List<String> Errors = new List<String>();
 
         static void Main(string [] args)
         {
@@ -35,17 +36,40 @@ namespace Lox
             if (hadRuntimeError) System.Environment.Exit(70);
         }
 
+        /// <summary>
+        /// Runs a REPL
+        /// </summary>
         private static void RunPrompt()
         {
             while (true)
             {
-                // run a REPL
                 Console.Write("> ");
                 string line = Console.ReadLine();
                 if (line != null)
                 {
-                    Run(line);
+                    List<Token> tokens = new Scanner(line).ScanTokens();
+                    List<Stmt> statements = new ParserRD(tokens).Parse();
+                    if (!hadError)
+                    {
+                        interpreter.Interpret(statements);
+                        continue;
+                    }
+
+                    // Normal statement parsing failed, try to parse as an expression.
                     hadError = false;
+                    Expr expr = new ParserRD(tokens).ParseExpression();
+                    if (!hadError)
+                    {
+                        Console.WriteLine(interpreter.EvaluateExpr(expr));
+                        continue;
+                    }
+                    else
+                    {
+                        // Both parse attempts failed.
+                        ReportErrors();
+                        ClearErrors();
+                        hadError = false;
+                    }
                 }
                 else
                 {
@@ -73,35 +97,52 @@ namespace Lox
             {
                 interpreter.Interpret(statements);
             }
+            else
+            {
+                ReportErrors();
+            }
         }
 
         public static void Error(int line, string message)
         {
-            Report(line, "", message);
+            AddError(line, "", message);
         }
 
         public static void Error(Token token, String message)
         {
             if (token.type == TokenType.EOF)
             {
-                Report(token.line, " at end", message);
+                AddError(token.line, " at end", message);
             }
             else
             {
-                Report(token.line, $" at '{token.lexeme}'", message);
+                AddError(token.line, $" at '{token.lexeme}'", message);
             }
         }
 
         public static void RuntimeError(RuntimeError error)
         {
-            Console.Error.WriteLine($"{error.Message} \n[line {error.token.line}]");
+            Console.Error.WriteLine($"{error.Message}\n[line {error.token.line}]");
             hadRuntimeError = true;
         }
 
-        private static void Report(int line, string where, string message)
+        private static void AddError(int line, string where, string message)
         {
-            Console.Error.WriteLine($"[line {line}] Error{where}: {message}");
+            Errors.Add($"[line {line}] Error{where}: {message}");
             hadError = true;
+        }
+
+        private static void ReportErrors()
+        {
+            foreach(var errorString in Errors)
+            {
+                Console.Error.WriteLine(errorString);
+            }
+        }
+
+        private static void ClearErrors()
+        {
+            Errors.Clear();
         }
     }
 }

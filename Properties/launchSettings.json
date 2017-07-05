@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Lox": {
-      "commandName": "Project",
-      "commandLineArgs": "F:\\projektit\\crafting_interpreters\\loxVS\\Lox\\test_file.txt"
+      "commandName": "Project"
     }
   }
 }
