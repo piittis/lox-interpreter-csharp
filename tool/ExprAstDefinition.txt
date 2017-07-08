@@ -2,6 +2,7 @@
 Binary   : Expr left, Token op, Expr right
 Grouping : Expr expression
 Literal  : object value
+Logical  : Expr left, Token op, Expr right
 Unary    : Token op, Expr right
 Comma    : Expr left, Expr right
 Ternary  : Expr condition, Expr ifTrue, Expr ifFalse

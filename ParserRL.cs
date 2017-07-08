@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Lox
 {
@@ -9,8 +8,8 @@ namespace Lox
 
         /* 
          * Might implement this.
-         * LR(1) aka shift reduce parser 
-         * see engineering compilers page 119 for implementation tips.
+         * LR(1) aka shift reduce parser.
+         * See engineering compilers page 119 for implementation tips.
          * 
          */
 

@@ -92,7 +92,10 @@ namespace Lox
 
         private Stmt Statement()
         {
+            if (Match(FOR)) return ForStatement();
+            if (Match(IF)) return IfStatement();
             if (Match(PRINT)) return PrintStatement();
+            if (Match(WHILE)) return WhileStatement();
             if (Match(LEFT_BRACE)) return Block();
             return ExpressionStatement();
         }
@@ -104,11 +107,99 @@ namespace Lox
             return new Stmt.Expression(expr);
         }
 
+        private Stmt ForStatement()
+        {
+            Consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+            // For loop doesn't get its own statement.
+            // Instead we desugar and reduce it to a while loop.
+
+            Stmt initializer;
+            if (Match(SEMICOLON))
+            {
+                initializer = null;
+            }
+            else if (Match(VAR))
+            {
+                initializer = VarDeclaration();
+            }
+            else
+            {
+                initializer = ExpressionStatement();
+            }
+
+            Expr condition = null;
+            if (!IsCurrentTokenType(SEMICOLON))
+            {
+                condition = Expression();
+            }
+            Consume(SEMICOLON, "Expect ';' after loop condition.");
+
+            Expr increment = null;
+            if (!IsCurrentTokenType(RIGHT_PAREN))
+            {
+                increment = Expression();
+            }
+            Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+            // Parse the statement body of the for loop.
+            Stmt body = Statement();
+            if (increment != null)
+            {
+                // Add increment to be executed after the main body.
+                body = new Stmt.Block(new List<Stmt>
+                {
+                    body,
+                    new Stmt.Expression(increment)
+                });
+            }
+
+            if (condition == null)
+            {
+                condition = new Expr.Literal(true);
+            }
+            
+            body = new Stmt.While(condition, body);
+            if (initializer != null)
+            {
+                // Run the initializer once before the while loop.
+                body = new Stmt.Block(new List<Stmt> { initializer, body });
+            }
+
+            return body;
+        }
+
+        private Stmt IfStatement()
+        {
+            Consume(LEFT_PAREN, "Expect '(' after 'if'.");
+            Expr condition = Expression();
+            Consume(RIGHT_PAREN, "Expect ')' after if condition.");
+            Stmt thenBranch = Statement();
+            Stmt elseBranch = null;
+            if (Match(ELSE))
+            {
+                elseBranch = Statement();
+            }
+            return new Stmt.If(condition, thenBranch, elseBranch);
+
+            throw new NotImplementedException();
+        }
+
         private Stmt PrintStatement()
         {
             Expr value = Expression();
             Consume(SEMICOLON, "Expect ';' after value.");
             return new Stmt.Print(value);
+        }
+
+        private Stmt WhileStatement()
+        {
+            Consume(LEFT_PAREN, "Expect '(' after 'while'.");
+            Expr condition = Expression();
+            Consume(RIGHT_PAREN, "Expect ')' after condition.");
+            Stmt body = Statement();
+
+            return new Stmt.While(condition, body);
         }
 
         private Stmt Block()
@@ -130,7 +221,7 @@ namespace Lox
         private Expr Assignment()
         {
             
-            Expr expr = BinaryError();
+            Expr expr = Or();
 
             if (Match(EQUAL))
             {
@@ -143,6 +234,32 @@ namespace Lox
                     return new Expr.Assign(name, value);
                 }
                 Error(equals, "Invalid assignment target.");
+            }
+
+            return expr;
+        }
+
+        private Expr Or()
+        {
+            Expr expr = And();
+            while(Match(OR))
+            {
+                Token op = Previous();
+                Expr right = And();
+                expr = new Expr.Logical(expr, op, right);
+            }
+
+            return expr;
+        }
+
+        private Expr And()
+        {
+            Expr expr = BinaryError();
+            while (Match(AND))
+            {
+                Token op = Previous();
+                Expr right = BinaryError();          
+                expr = new Expr.Logical(expr, op, right);
             }
 
             return expr;

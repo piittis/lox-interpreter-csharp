@@ -8,7 +8,9 @@ namespace Lox
 
         public interface IVisitor<T> {
             T VisitExpressionStmt(Expression stmt);
+            T VisitIfStmt(If stmt);
             T VisitPrintStmt(Print stmt);
+            T VisitWhileStmt(While stmt);
             T VisitVarStmt(Var stmt);
             T VisitBlockStmt(Block stmt);
         }
@@ -25,6 +27,22 @@ namespace Lox
 
 	    }
 
+        public class If : Stmt {
+
+            public Expr condition;
+            public Stmt thenBranch;
+            public Stmt elseBranch;
+
+            public If (Expr condition, Stmt thenBranch, Stmt elseBranch) {
+                this.condition = condition;
+                this.thenBranch = thenBranch;
+                this.elseBranch = elseBranch;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitIfStmt(this); }
+
+	    }
+
         public class Print : Stmt {
 
             public Expr expression;
@@ -34,6 +52,20 @@ namespace Lox
             }
 
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitPrintStmt(this); }
+
+	    }
+
+        public class While : Stmt {
+
+            public Expr condition;
+            public Stmt body;
+
+            public While (Expr condition, Stmt body) {
+                this.condition = condition;
+                this.body = body;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitWhileStmt(this); }
 
 	    }
 

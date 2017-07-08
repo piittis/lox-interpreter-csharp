@@ -39,6 +39,11 @@ namespace Lox
             return expr.value.ToString();
         }
 
+        public string VisitLogicalExpr(Expr.Logical expr)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitTernaryExpr(Expr.Ternary expr)
         {
             return $"({expr.condition.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)})";

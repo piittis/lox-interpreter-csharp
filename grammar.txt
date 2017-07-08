@@ -6,16 +6,25 @@ declaration → varDecl
 varDecl     → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 statement   → exprStmt
+            | forStmt
+            | ifStmt
             | printStmt
+			| whileStmt
 			| block ;
 
 exprStmt    → expression ";" ;
+ifStmt      → "if" "(" expression ")" statement ( "else" statement )? ;
+forStmt     → "for" "(" ( varDecl | exprStmt | ";" )
+                        expression? ";" epxression? ";" statement;
 printStmt   → "print" expression ";" ;
+whileStmt   → "while" "(" expression ")" statement ;
 block       → "{" declaration* "}" ;
 
 expression  → assignment ;
 assignment  → IDENTIFIER "=" assignment
-            | binary_err ;
+            | logic_or ;
+logic_or    → logic_and ( "or" logic_and )* ;
+logic_and   → binary_err ( "and" binary_err )* ;
 binary_err  → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
             | comma ;
 comma       → ternary ( "," ternary )* ;
