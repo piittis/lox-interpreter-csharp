@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Lox": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "test_file.txt"
     }
   }
 }

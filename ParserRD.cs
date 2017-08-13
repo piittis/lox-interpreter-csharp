@@ -6,7 +6,6 @@ using static Lox.TokenType;
 namespace Lox
 {
 
-
     /// <summary>
     /// Recursive descent parser
     /// </summary>
@@ -24,6 +23,7 @@ namespace Lox
 
         private readonly List<Token> tokens;
         private int current = 0;
+        private Token CurrentToken => tokens[current];
 
         public ParserRD(List<Token> tokens)
         {
@@ -63,11 +63,8 @@ namespace Lox
         {
             try
             {
-                if (Match(VAR))
-                {
-                    return VarDeclaration();
-                }
-
+                if (Match(FUN)) return Function("function");
+                if (Match(VAR)) return VarDeclaration();
                 return Statement();
             } catch (ParseError)
             {
@@ -95,8 +92,9 @@ namespace Lox
             if (Match(FOR)) return ForStatement();
             if (Match(IF)) return IfStatement();
             if (Match(PRINT)) return PrintStatement();
+            if (Match(RETURN)) return returnStatement();
             if (Match(WHILE)) return WhileStatement();
-            if (Match(LEFT_BRACE)) return Block();
+            if (Match(LEFT_BRACE)) return new Stmt.Block(Block());
             return ExpressionStatement();
         }
 
@@ -105,6 +103,30 @@ namespace Lox
             Expr expr = Expression();
             Consume(SEMICOLON, "Expect ';' after expression.");
             return new Stmt.Expression(expr);
+        }
+
+        private Stmt.Function Function(string kind)
+        {
+            Token name = Consume(IDENTIFIER, $"Excpect {kind} name.");
+            Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+            var parameters = new List<Token>();
+            if (!IsCurrentTokenType(RIGHT_PAREN))
+            {
+                do
+                {
+                    if (parameters.Count >= 8)
+                    {
+                        Error(Peek(), "Cannot have more than 8 parameters.");
+                    }
+                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
+                } while (Match(COMMA));
+            }
+
+            Consume(RIGHT_PAREN, "Expect ')' after parameters.");
+            Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+            List<Stmt> body = Block();
+
+            return new Stmt.Function(name, parameters, body);
         }
 
         private Stmt ForStatement()
@@ -192,6 +214,19 @@ namespace Lox
             return new Stmt.Print(value);
         }
 
+        private Stmt returnStatement()
+        {
+            Token keyword = Previous();
+            Expr value = null;
+            if (!IsCurrentTokenType(SEMICOLON))
+            {
+                value = Expression();
+            }
+
+            Consume(SEMICOLON, "Expect ';' after return value.");
+            return new Stmt.Return(keyword, value);
+        }
+
         private Stmt WhileStatement()
         {
             Consume(LEFT_PAREN, "Expect '(' after 'while'.");
@@ -202,7 +237,7 @@ namespace Lox
             return new Stmt.While(condition, body);
         }
 
-        private Stmt Block()
+        private List<Stmt> Block()
         {
             var statements = new List<Stmt>();
             while (!IsCurrentTokenType(RIGHT_BRACE) && !IsAtEnd())
@@ -210,17 +245,24 @@ namespace Lox
                 statements.Add(Declaration());
             }
             Consume(RIGHT_BRACE, "Expect '}' after block.");
-            return new Stmt.Block(statements);
+            return statements;
         }
 
         private Expr Expression()
         {
-            return Assignment();
+            Expr expr = Assignment();
+
+            while(Match(COMMA))
+            {
+                Expr right = Assignment();
+                expr = new Expr.Comma(expr, right);
+            }
+
+            return expr;
         }
 
         private Expr Assignment()
-        {
-            
+        {         
             Expr expr = Or();
 
             if (Match(EQUAL))
@@ -272,23 +314,10 @@ namespace Lox
                 // Binary operator should not appear at start of expression.
                 Error(matchedToken, "Binary operator without left-hand operand.");
                 // Parse possible right hand operand but discard it.
-                Comma();
+                Ternary();
             }
 
-            return Comma();         
-        }
-
-        private Expr Comma()
-        {
-            Expr expr = Ternary();
-
-            while (Match(COMMA))
-            {
-                Expr right = Ternary();
-                expr = new Expr.Comma(expr, right);
-            }
-
-            return expr;
+            return Ternary();         
         }
 
         private Expr Ternary()
@@ -298,9 +327,9 @@ namespace Lox
             if (Match(QUESTION_MARK))
             {
                 Expr condition = expr;
-                Expr ifTrue = Expression();
+                Expr ifTrue = Assignment();
                 Consume(COLON, "Expecting ':'");         
-                Expr ifFalse = Expression();
+                Expr ifFalse = Assignment();
                 expr = new Expr.Ternary(condition, ifTrue, ifFalse);               
             }
 
@@ -368,7 +397,49 @@ namespace Lox
                 return expr;
             }
 
-            return Primary();
+            return Call();
+        }
+
+        private Expr Call()
+        {
+            Expr expr = Primary();
+
+            while(true)
+            {
+                if (Match(LEFT_PAREN))
+                {
+                    // Trying to call previous expr as a function.
+                    expr = FinishCall(expr);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return expr;
+        }
+
+        private Expr FinishCall(Expr callee)
+        {
+            var arguments = new List<Expr>();
+            if (!IsCurrentTokenType(RIGHT_PAREN))
+            {
+                // Parse possible arguments
+                do
+                {
+                    if (arguments.Count >= 8)
+                    {
+                        Error(Peek(), "Cannot have more than 8 arguments.");
+                    }
+                    arguments.Add(Assignment());
+                }
+                while (Match(COMMA));
+            }
+
+            Token paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+            return new Expr.Call(callee, paren, arguments);
         }
 
         private Expr Primary()
@@ -453,14 +524,11 @@ namespace Lox
 
         private bool Match(out Token matchedToken, params TokenType[] types)
         {
-            foreach(TokenType type in types)
+            if (types.Any(IsCurrentTokenType))
             {
-                if (IsCurrentTokenType(type))
-                {
-                    matchedToken = Peek();
-                    Advance();
-                    return true;
-                }
+                matchedToken = Peek();
+                Advance();
+                return true;
             }
             matchedToken = null;
             return false;
@@ -472,15 +540,9 @@ namespace Lox
             return Peek().type == tokenType;
         }
 
-        private bool IsAtEnd()
-        {
-            return Peek().type == EOF;
-        }
+        private bool IsAtEnd() => Peek().type == EOF;
 
-        private Token Peek()
-        {
-            return tokens[current];
-        }
+        private Token Peek() => tokens[current];
 
         private Token Advance()
         {
@@ -488,10 +550,7 @@ namespace Lox
             return Previous();
         }
 
-        private Token Previous()
-        {
-            return tokens[current - 1];
-        }
+        private Token Previous() => tokens[current - 1];
 
     }
 }

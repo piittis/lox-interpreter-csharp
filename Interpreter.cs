@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Lox.TokenType;
 
 namespace Lox
@@ -7,7 +8,13 @@ namespace Lox
     class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object>
     {
 
-        private Environment environment = new Environment();
+        public readonly Environment globals = new Environment();
+        private Environment environment;
+
+        public Interpreter()
+        {
+            environment = globals;
+        }
 
         public void Interpret(List<Stmt> statements)
         {
@@ -20,6 +27,25 @@ namespace Lox
             } catch (RuntimeError error)
             {
                 Lox.RuntimeError(error);
+            }
+        }
+
+        public void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
+        }
+
+        public void ExecuteBlock(List<Stmt> statements, Environment blockEnvironment)
+        {
+            Environment previous = environment;
+            try
+            {
+                environment = blockEnvironment;
+                statements.ForEach(Execute);
+            }
+            finally
+            {
+                environment = previous;
             }
         }
 
@@ -62,9 +88,16 @@ namespace Lox
             return null;
         }
 
+        public object VisitFunctionStmt(Stmt.Function stmt)
+        {
+            LoxFunction function = new LoxFunction(stmt, environment);
+            environment.Define(stmt.name.lexeme, function);
+            return null;
+        }
+
         public object VisitIfStmt(Stmt.If stmt)
         {
-            if (IsTruthy(stmt.condition))
+            if (IsTruthy(Evaluate(stmt.condition)))
             {
                 Execute(stmt.thenBranch);
             }
@@ -81,9 +114,17 @@ namespace Lox
             return null;
         }
 
+        public object VisitReturnStmt(Stmt.Return stmt)
+        {
+            object value = null;
+            if (stmt.value != null) value = Evaluate(stmt.value);
+
+            throw new Return(value);
+        }
+
         public object VisitBlockStmt(Stmt.Block stmt)
         {
-            ExecuteBlock(stmt.statements);
+            ExecuteBlock(stmt.statements, new Environment(environment));
             return null;
         }
 
@@ -160,6 +201,25 @@ namespace Lox
             return null;
         }
 
+        public object VisitCallExpr(Expr.Call expr)
+        {
+            object callee = Evaluate(expr.callee);
+
+            var arguments = expr.arguments.Select(Evaluate).ToList();
+
+            if (callee is ICallable func)
+            {
+                if (arguments.Count != func.Arity())
+                {
+                    throw new RuntimeError(expr.paren,
+                        $"Expected {func.Arity()} arguments but got {arguments.Count}.");
+                }
+
+                return func.Call(this, arguments);
+            }
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+
         public object VisitUnaryExpr(Expr.Unary expr)
         {
             object right = Evaluate(expr.right);
@@ -222,28 +282,6 @@ namespace Lox
             return expr.Accept(this);
         }
 
-        private void Execute(Stmt stmt)
-        {
-            stmt.Accept(this);
-        }
-
-        private void ExecuteBlock(List<Stmt> statements)
-        {
-            // Create new scope for the block and discard it when done.
-            Environment prev = environment;
-            try
-            {
-                environment = new Environment(environment);
-                foreach(var statement in statements)
-                {
-                    Execute(statement);
-                }
-            }
-            finally
-            {
-                environment = prev;
-            }
-        }
 
         private bool IsTruthy(object obj)
         {
@@ -285,6 +323,7 @@ namespace Lox
 
             return obj.ToString();
         }
+
 
     }
 }

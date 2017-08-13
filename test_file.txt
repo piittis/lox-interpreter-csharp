@@ -1,19 +1,10 @@
-﻿var a = "global a";
-var b = "global b";
-var c = "global c";
-{
-  var a = "outer a";
-  var b = "outer b";
-  {
-    var a = "inner a";
-    print a;
-    print b;
-    print c;
-  }
-  print a;
-  print b;
-  print c;
+﻿fun makeAdder(howMuch) {
+	fun add(num) {
+		return num + howMuch;
+	}
+	return add;
 }
-print a;
-print b;
-print c;
+
+var add5 = makeAdder(5);
+
+print(add5(10));

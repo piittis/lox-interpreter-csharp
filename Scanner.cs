@@ -14,13 +14,7 @@ namespace Lox
         private int current = 0;
         private int line = 1;
 
-        private char CurrentChar
-        {
-            get
-            {
-                return source[current];
-            }
-        }
+        private char CurrentChar => source[current];
 
         private static readonly Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>()
         {
@@ -260,27 +254,13 @@ namespace Lox
 
         #region helpers
 
-        private bool IsAlpha(char c)
-        {
-            return (c >= 'a' && c <= 'z') ||
-                   (c >= 'A' && c <= 'Z') ||
-                    c == '_';
-        }
+        private bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 
-        private bool IsDigit(char c)
-        {
-            return c >= '0' && c <= '9';
-        }
+        private bool IsDigit(char c) => c >= '0' && c <= '9';
 
-        private bool IsAlphaNumeric(char c)
-        {
-            return IsAlpha(c) || IsDigit(c);
-        }
+        private bool IsAlphaNumeric(char c) => IsAlpha(c) || IsDigit(c);
 
-        private bool IsAtEnd()
-        {
-            return current >= source.Length;
-        }
+        private bool IsAtEnd() => current >= source.Length;
 
         #endregion
         

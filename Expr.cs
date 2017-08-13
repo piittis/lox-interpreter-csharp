@@ -9,6 +9,7 @@ namespace Lox
         public interface IVisitor<T> {
             T VisitAssignExpr(Assign expr);
             T VisitBinaryExpr(Binary expr);
+            T VisitCallExpr(Call expr);
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
@@ -45,6 +46,22 @@ namespace Lox
             }
 
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitBinaryExpr(this); }
+
+	    }
+
+        public class Call : Expr {
+
+            public Expr callee;
+            public Token paren;
+            public List<Expr> arguments;
+
+            public Call (Expr callee, Token paren, List<Expr> arguments) {
+                this.callee = callee;
+                this.paren = paren;
+                this.arguments = arguments;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitCallExpr(this); }
 
 	    }
 

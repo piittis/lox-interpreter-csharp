@@ -12,7 +12,6 @@ namespace Lox
 
         static void Main(string [] args)
         {
-
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: jlox [script]");
@@ -31,6 +30,9 @@ namespace Lox
         {
             string text = System.IO.File.ReadAllText(path);
             Run(text);
+
+            Console.Write("Finished, press any key...");
+            Console.ReadKey();
 
             if (hadError) System.Environment.Exit(65);
             if (hadRuntimeError) System.Environment.Exit(70);

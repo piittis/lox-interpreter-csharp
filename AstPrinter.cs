@@ -24,6 +24,11 @@ namespace Lox
             return Parenthesize(expr.op.lexeme, expr.left, expr.right);
         }
 
+        public string VisitCallExpr(Expr.Call expr)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitCommaExpr(Expr.Comma expr)
         {
             return Parenthesize("comma", expr.left, expr.right);
