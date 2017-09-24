@@ -9,7 +9,7 @@ namespace Lox
         private readonly Dictionary<string, object> values = new Dictionary<string, object>();
 
         // All variables have this value before they are initialized or assigned.
-        public static object unAssigned = new object();
+        public static readonly object unAssigned = new object();
 
         public Environment()
         {
@@ -43,7 +43,7 @@ namespace Lox
             throw new RuntimeError(name, $"Undefined variable '{name.lexeme}'.");
         }
 
-        internal void Assign(Token name, object value)
+        public void Assign(Token name, object value)
         {
             if (values.ContainsKey(name.lexeme))
             {
@@ -52,6 +52,46 @@ namespace Lox
             else if (enclosing != null)
             {
                 enclosing.Assign(name, value);
+            }
+            else
+            {
+                throw new RuntimeError(name, $"Undefined variable '{name.lexeme}'.");
+            }
+        }
+
+        public object GetAt(int distance, Token name)
+        {
+            // Walk up the distance to the correct enclosing environment.
+            var environment = this;
+            for (int i = 0; i < distance; i++)
+            {
+                environment = environment.enclosing;
+            }
+
+            if (environment.values.TryGetValue(name.lexeme, out object val))
+            {
+                if (ReferenceEquals(val, unAssigned))
+                {
+                    throw new RuntimeError(name, $"Use of unassigned variable '{name.lexeme}'.");
+                }
+                return val;
+            }
+
+            throw new RuntimeError(name, $"Undefined variable '{name.lexeme}'.");
+        }
+
+        internal void AssignAt(int distance, Token name, object value)
+        {
+            // Walk up the distance to the correct enclosing environment.
+            var environment = this;
+            for (int i = 0; i < distance; i++)
+            {
+                environment = environment.enclosing;
+            }
+
+            if (environment.values.ContainsKey(name.lexeme))
+            {
+                environment.values[name.lexeme] = value;
             }
             else
             {

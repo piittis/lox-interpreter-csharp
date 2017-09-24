@@ -10,6 +10,7 @@ namespace Lox
 
         public readonly Environment globals = new Environment();
         private Environment environment;
+        private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
         public Interpreter()
         {
@@ -47,6 +48,11 @@ namespace Lox
             {
                 environment = previous;
             }
+        }
+
+        internal void Resolve(Expr expr, int depth)
+        {
+            locals.Add(expr, depth);
         }
 
         public string EvaluateExpr(Expr expr)
@@ -132,7 +138,15 @@ namespace Lox
         public object VisitAssignExpr(Expr.Assign expr)
         {
             object value = Evaluate(expr.value);
-            environment.Assign(expr.name, value);
+            if (locals.TryGetValue(expr, out int distance))
+            {
+                environment.AssignAt(distance, expr.name, value);
+            }
+            else
+            {
+                environment.Assign(expr.name, value);
+            }
+            
             return value;
         }
 
@@ -273,19 +287,28 @@ namespace Lox
 
         public object VisitVariableExpr(Expr.Variable expr)
         {
-            return environment.Get(expr.name);
+            return LookupVariable(expr.name, expr);
         }
 
+        private object LookupVariable(Token name, Expr.Variable expr)
+        {
+            if (locals.TryGetValue(expr, out int distance))
+            {
+                return environment.GetAt(distance, name);
+            }
+            else
+            {
+                return globals.Get(name);
+            }
+        }
 
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
         }
 
-
         private bool IsTruthy(object obj)
         {
-            // C# 7 pattern matching
             switch (obj)
             {
                 case bool b:
@@ -323,7 +346,6 @@ namespace Lox
 
             return obj.ToString();
         }
-
 
     }
 }

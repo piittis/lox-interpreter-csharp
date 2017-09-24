@@ -89,20 +89,20 @@ namespace Lox
 
             Console.WriteLine($"running:\n{source}");
 
-            Scanner scanner = new Scanner(source);
+            var scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
 
-            ParserRD parser = new ParserRD(tokens);
-            List<Stmt> statements = parser.Parse();        
+            var parser = new ParserRD(tokens);
+            List<Stmt> statements = parser.Parse();
 
-            if (!hadError)
-            {
-                interpreter.Interpret(statements);
-            }
-            else
-            {
-                ReportErrors();
-            }
+            if (hadErrors()) return;
+
+            var resolver = new Resolver(interpreter);
+            resolver.Resolve(statements);
+
+            if (hadErrors()) return;
+
+            interpreter.Interpret(statements);
         }
 
         public static void Error(int line, string message)
@@ -132,6 +132,16 @@ namespace Lox
         {
             Errors.Add($"[line {line}] Error{where}: {message}");
             hadError = true;
+        }
+
+        private static bool hadErrors()
+        {
+            if (hadError)
+            {
+                ReportErrors();
+                return true;
+            }
+            return false;
         }
 
         private static void ReportErrors()
