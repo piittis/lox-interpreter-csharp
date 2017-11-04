@@ -10,6 +10,7 @@ namespace Lox
 
         public readonly Environment globals = new Environment();
         private Environment environment;
+        // How many scopes are between variable refenrece and the variable itself. Resolved beforehand.
         private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
         public Interpreter()
@@ -50,7 +51,7 @@ namespace Lox
             }
         }
 
-        internal void Resolve(Expr expr, int depth)
+        public void Resolve(Expr expr, int depth)
         {
             locals.Add(expr, depth);
         }
@@ -134,6 +135,14 @@ namespace Lox
             return null;
         }
 
+        public object VisitClassStmt(Stmt.Class stmt)
+        {
+            environment.Define(stmt.name.lexeme, null);
+            LoxClass klass = new LoxClass(stmt.name.lexeme);
+            environment.Assign(stmt.name, klass);
+
+            return null;
+        }
 
         public object VisitAssignExpr(Expr.Assign expr)
         {
@@ -234,6 +243,17 @@ namespace Lox
             throw new RuntimeError(expr.paren, "Can only call functions and classes.");
         }
 
+        public object VisitGetExpr(Expr.Get expr)
+        {
+            Object obj = Evaluate(expr.obj);
+            if (obj is LoxInstance instance)
+            {
+                return instance[expr.name];
+            }
+
+            throw new RuntimeError(expr.name, "Only instances have properties");
+        }
+
         public object VisitUnaryExpr(Expr.Unary expr)
         {
             object right = Evaluate(expr.right);
@@ -278,6 +298,20 @@ namespace Lox
             }
 
             return Evaluate(expr.right);
+        }
+
+        public object VisitSetExpr(Expr.Set expr)
+        {
+            object obj = Evaluate(expr.obj);
+
+            if (obj is LoxInstance instance)
+            {
+                object value = Evaluate(expr.value);
+                instance[expr.name] = value;
+                return value;
+            }
+
+            throw new RuntimeError(expr.name, "Only instances have fields.");
         }
 
         public object VisitGroupingExpr(Expr.Grouping expr)

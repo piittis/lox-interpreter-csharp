@@ -63,6 +63,7 @@ namespace Lox
         {
             try
             {
+                if (Match(CLASS)) return ClassDeclaration();
                 if (Match(FUN)) return Function("function");
                 if (Match(VAR)) return VarDeclaration();
                 return Statement();
@@ -71,6 +72,22 @@ namespace Lox
                 Synchronize();
                 return null;
             }
+        }
+
+        private Stmt ClassDeclaration()
+        {
+            Token name = Consume(IDENTIFIER, "Expect class name.");
+            Consume(LEFT_BRACE, "Expect '{' before class body.");
+
+            List<Stmt.Function> methods = new List<Stmt.Function>();
+            while (!IsCurrentTokenType(RIGHT_BRACE) && !IsAtEnd())
+            {
+                methods.Add(Function("method"));
+            }
+
+            Consume(RIGHT_BRACE, "Expect '}' afater class body.");
+
+            return new Stmt.Class(name, methods);
         }
 
         private Stmt VarDeclaration()
@@ -265,15 +282,22 @@ namespace Lox
         {         
             Expr expr = Or();
 
+            // if "=" is next, we are trying to assign a value to the parsed expression.
+            // Expression needs to be converted from rvalue to lvalue.
             if (Match(EQUAL))
             {
                 Token equals = Previous();
                 Expr value = Assignment();
-                // Convert from rvalue to lvalue.
+                // Assign to a variable.
                 if (expr is Expr.Variable variable)
                 {
                     Token name = variable.name;
                     return new Expr.Assign(name, value);
+                }
+                // Assign to a property.
+                else if (expr is Expr.Get get)
+                {
+                    return new Expr.Set(get.obj, get.name, value);
                 }
                 Error(equals, "Invalid assignment target.");
             }
@@ -410,6 +434,10 @@ namespace Lox
                 {
                     // Trying to call previous expr as a function.
                     expr = FinishCall(expr);
+                }
+                else if (Match(DOT))
+                {
+                    Token name = Consume(IDENTIFIER, "expect property name after '.'.");
                 }
                 else
                 {

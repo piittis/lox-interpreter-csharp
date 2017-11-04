@@ -38,6 +38,13 @@ namespace Lox
             return null;
         }
 
+        public object VisitClassStmt(Stmt.Class stmt)
+        {
+            Declare(stmt.name);
+            Define(stmt.name);
+            return null;
+        }
+
         public object VisitExpressionStmt(Stmt.Expression stmt)
         {
             Resolve(stmt.expression);
@@ -118,6 +125,12 @@ namespace Lox
             return null;
         }
 
+        public object VisitGetExpr(Expr.Get expr)
+        {
+            Resolve(expr.obj);
+            return null;
+        }
+
         public object VisitCommaExpr(Expr.Comma expr)
         {
             Resolve(expr.left);
@@ -140,6 +153,13 @@ namespace Lox
         {
             Resolve(expr.left);
             Resolve(expr.right);
+            return null;
+        }
+
+        public object VisitSetExpr(Expr.Set expr)
+        {
+            Resolve(expr.value);
+            Resolve(expr.obj);
             return null;
         }
 
@@ -176,7 +196,7 @@ namespace Lox
             if (scopes.Count == 0) return;
             if (!CurrentScope.TryAdd(name.lexeme, false))
             {
-                Lox.Error(name, "Variable with this name already declared in this scope.");
+                Lox.Error(name, $"Variable with name '{name.lexeme}' already declared in this scope.");
             }
         }
 
@@ -192,7 +212,7 @@ namespace Lox
             for (int i = scopes.Count - 1; i >= 0; i--)
             {
                 if (scopes[i].ContainsKey(name.lexeme))
-                {       
+                {
                     // Tell the interpreter where the variable is found.
                     interpreter.Resolve(expr, scopes.Count - 1 - i);
                 }
@@ -241,5 +261,6 @@ namespace Lox
         {
             scopes.RemoveAt(scopes.Count - 1);
         }
+
     }
 }

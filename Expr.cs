@@ -10,9 +10,11 @@ namespace Lox
             T VisitAssignExpr(Assign expr);
             T VisitBinaryExpr(Binary expr);
             T VisitCallExpr(Call expr);
+            T VisitGetExpr(Get expr);
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
+            T VisitSetExpr(Set expr);
             T VisitUnaryExpr(Unary expr);
             T VisitCommaExpr(Comma expr);
             T VisitTernaryExpr(Ternary expr);
@@ -65,6 +67,20 @@ namespace Lox
 
 	    }
 
+        public class Get : Expr {
+
+            public Expr obj;
+            public Token name;
+
+            public Get (Expr obj, Token name) {
+                this.obj = obj;
+                this.name = name;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitGetExpr(this); }
+
+	    }
+
         public class Grouping : Expr {
 
             public Expr expression;
@@ -102,6 +118,22 @@ namespace Lox
             }
 
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitLogicalExpr(this); }
+
+	    }
+
+        public class Set : Expr {
+
+            public Expr obj;
+            public Token name;
+            public Expr value;
+
+            public Set (Expr obj, Token name, Expr value) {
+                this.obj = obj;
+                this.name = name;
+                this.value = value;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitSetExpr(this); }
 
 	    }
 
