@@ -13,6 +13,10 @@ namespace Lox
         // How many scopes are between variable refenrece and the variable itself. Resolved beforehand.
         private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
+        // For debugging:
+        private List<Stmt> statements;
+        private Stmt currentStatement;
+
         public Interpreter()
         {
             environment = globals;
@@ -20,10 +24,12 @@ namespace Lox
 
         public void Interpret(List<Stmt> statements)
         {
+            this.statements = statements;
             try
             {
                 foreach (var statement in statements)
                 {
+                    this.currentStatement = statement;
                     Execute(statement);
                 }
             } catch (RuntimeError error)
@@ -138,9 +144,11 @@ namespace Lox
         public object VisitClassStmt(Stmt.Class stmt)
         {
             environment.Define(stmt.name.lexeme, null);
-            LoxClass klass = new LoxClass(stmt.name.lexeme);
-            environment.Assign(stmt.name, klass);
 
+            var methods = stmt.methods.ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment));
+            LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+
+            environment.Assign(stmt.name, klass);
             return null;
         }
 
@@ -314,6 +322,11 @@ namespace Lox
             throw new RuntimeError(expr.name, "Only instances have fields.");
         }
 
+        public object VisitThisExpr(Expr.This expr)
+        {
+            return LookupVariable(expr.keyword, expr);
+        }
+
         public object VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.expression);
@@ -324,7 +337,7 @@ namespace Lox
             return LookupVariable(expr.name, expr);
         }
 
-        private object LookupVariable(Token name, Expr.Variable expr)
+        private object LookupVariable(Token name, Expr expr)
         {
             if (locals.TryGetValue(expr, out int distance))
             {

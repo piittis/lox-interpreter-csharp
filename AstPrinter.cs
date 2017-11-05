@@ -106,6 +106,11 @@ namespace Lox
             return $"({expr.condition.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)})";
         }
 
+        public string VisitThisExpr(Expr.This expr)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitUnaryExpr(Expr.Unary expr)
         {
             return Parenthesize(expr.op.lexeme, expr.right);

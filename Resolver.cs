@@ -13,23 +13,40 @@ namespace Lox
     {
         private readonly Interpreter interpreter;
 
-        // List represents LIFO listing of nested scopes.
+        /* List represents LIFO listing of nested scopes. Not using Stack because we need to index into it.
+         * Dict key is variable name, value tells is it defined or not. False -> is declared, True -> is declared and defined.
+         * That info is needed to handle some corner cases like "var foo = foo"
+         * */
         private readonly List<ConcurrentDictionary<string, bool>> scopes = new List<ConcurrentDictionary<string, bool>>();
+
         private ConcurrentDictionary<string, bool> CurrentScope => scopes.Last();
         // Used to track if we are in a specific type of function. We can then report illegal operations.
         private FunctionType currentFunction = FunctionType.NONE;
+        private ClassType currentClass = ClassType.NONE;
 
         private enum FunctionType
         {
             NONE,
-            FUNCTION
+            FUNCTION,
+            METHOD
+        };
+
+        private enum ClassType
+        {
+            NONE,
+            CLASS
         };
 
         public Resolver(Interpreter interpreter)
         {
             this.interpreter = interpreter;
         }
-    
+
+        public void Resolve(List<Stmt> statements)
+        {
+            statements.ForEach(Resolve);
+        }
+
         public object VisitBlockStmt(Stmt.Block stmt)
         {
             BeginScope();
@@ -42,6 +59,30 @@ namespace Lox
         {
             Declare(stmt.name);
             Define(stmt.name);
+
+            ClassType enclosingClass = currentClass;
+            currentClass = ClassType.CLASS;
+
+            BeginScope();
+            CurrentScope.TryAdd("this", true);
+
+            stmt.methods.ForEach(m => ResolveFunction(m, FunctionType.METHOD));
+
+            EndScope();
+            currentClass = ClassType.CLASS;
+
+            return null;
+        }
+
+        public object VisitThisExpr(Expr.This expr)
+        {
+            if (currentClass == ClassType.NONE)
+            {
+                Lox.Error(expr.keyword, "Cannot use 'this' outside of a class.");
+                return null;
+            }
+            // When "this" is encountered, we just look it up like it was any other variable.
+            ResolveLocal(expr, expr.keyword);
             return null;
         }
 
@@ -179,7 +220,7 @@ namespace Lox
 
         public object VisitVariableExpr(Expr.Variable expr)
         {
-            if (scopes.Count != 0 && CurrentScope.TryGetValue(expr.name.lexeme, out bool val)) {
+            if (scopes.Count > 0 && CurrentScope.TryGetValue(expr.name.lexeme, out bool val)) {
                 if (!val)
                 {
                     // Variable is declared but not defined yet.
@@ -219,11 +260,6 @@ namespace Lox
             }
 
             // Not found. Assume it is global.
-        }
-
-        public void Resolve(List<Stmt> statements)
-        {
-            statements.ForEach(Resolve);
         }
 
         private void Resolve(Stmt stmt)
