@@ -1,73 +1,68 @@
-﻿# generates the file Expr.cs based on AstDefinitions.txt
+﻿from jinja2 import Template
+
+# generates file Expr.cs based on ExprAstDefinition.txt
+# generates file Stmt.cs based on StmtAstDefinition.txt
+
+template = Template("""namespace Lox
+{
+    using System.Collections.Generic;
+    
+    abstract class {{baseclass}}
+    {
+        public abstract T Accept<T>(IVisitor<T> visitor);
+        
+        public interface IVisitor<T> {
+        {% for type in types %}
+            T Visit{{type.className}}{{baseclass}}({{type.className}} {{baseclass|lower}});
+        {%- endfor %}  
+               
+        }
+        
+        {% for type in types %}
+        public class {{type.className}} : {{baseclass}}
+        {
+            {%- for field in type.fields %}
+            public {{field.type}} {{field.name}};
+            {%- endfor %}
+            
+            public {{type.className}} ({%- for field in type.fields %} {{field.type}} {{field.name}}{%if not loop.last%},{%endif%} {%- endfor %})
+            {
+                {%- for field in type.fields %}
+                this.{{field.name}} = {{field.name}};
+                {%- endfor %}                
+            }
+            
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.Visit{{type.className}}{{baseclass}}(this); }
+        }
+        
+        {%- endfor %}
+    }  
+}
+""")
 
 
 def generate_ast_classes(inputPath, outputPath, baseClassName):
 
-	input = open(inputPath, "r", encoding='utf-8-sig')
-	output = open(outputPath, "w")
-	types = input.readlines()
+    with open(inputPath, "r", encoding="utf-8-sig") as input:
+        typesLines = input.readlines()
 
-	header = """namespace Lox
-{{
-	using System.Collections.Generic;
+    types = []
+    # each line will become one subclass
+    # form of type strings:
+    # "Binary   : Expr left, Token op, Expr right"
+    for life in typesLines:
+        className, fieldListing = life.split(":")
+        fields = []
+        for fieldType, fieldName in [f.strip().split(" ") for f in fieldListing.split(",")]:
+            fields.append({"type": fieldType, "name": fieldName})
 
-	abstract class {} 
-	{{ 
-		public abstract T Accept<T>(IVisitor<T> visitor);
+        types.append({"className": className.strip(), "fields": fields})
 
-""".format(baseClassName)
+    content = template.render(types=types, baseclass=baseClassName)
 
-	# open namespace and base class
-	output.write(header)
-
-	# define visitor interface
-	output.write("        public interface IVisitor<T> {\n")
-	for typeName in [typeInfo.split(":")[0].strip() for typeInfo in types]:
-		output.write("            T Visit{}{}({} {});\n".format(typeName, baseClassName, typeName, baseClassName.lower()))
-	output.write("        }\n")
-
-	# each line will become one subclass
-	# form of type strings:
-	# "Binary   : Expr left, Token op, Expr right"
-	for typeInfo in types:
-		className = typeInfo.split(":")[0].strip()
-		fieldListing = typeInfo.split(":")[1].strip()
-		fields = [f.strip() for f in fieldListing.split(",")]
-
-		output.write("\n")
-		# open class
-		output.write("        public class {} : {} {{\n".format(className, baseClassName))
-
-		# fields
-		output.write("\n")
-		for fieldType, fieldName in [f.split(" ") for f in fields]:
-			output.write("            public {} {};\n".format(fieldType, fieldName))
-		output.write("\n")
-
-		# constructor
-		output.write("            public {} ({}) {{\n".format(className, fieldListing))
-		for field in fields:
-			fieldName = field.split(" ")[1]
-			output.write("                this.{} = {};\n".format(fieldName, fieldName))
-		output.write("            }\n")
-
-		#implement IVisitor
-		output.write("\n")
-		output.write("            public override T Accept<T>(IVisitor<T> visitor) {{ return visitor.Visit{}{}(this); }}\n".format(className, baseClassName))
-		output.write("\n")
-
-		# close class
-		output.write("	    }\n")
-
-	# close base class
-	output.write("    }\n\n")
-
-	# close namespace
-	output.write("}")
-
-	input.close()
-	output.close()
+    with open(outputPath, "w", encoding="utf8") as output:
+        output.write(content)
 
 
-generate_ast_classes("./ExprAstDefinition.txt", "../Expr.cs", "Expr")
-generate_ast_classes("./StmtAstDefinition.txt", "../Stmt.cs", "Stmt")
+generate_ast_classes(".\ExprAstDefinition.txt", "..\Expr.cs", "Expr")
+generate_ast_classes(".\StmtAstDefinition.txt", "..\Stmt.cs", "Stmt")

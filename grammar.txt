@@ -5,7 +5,7 @@ declaration → classDecl
             | varDecl
             | statement ;
 
-classDecl   → "class" IDENTIFIER "{" function* "}" ;
+classDecl   → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 
 funDecl     → "fun" function ;
 
@@ -19,9 +19,9 @@ statement   → exprStmt
             | forStmt
             | ifStmt
             | printStmt
-			| returnStmt
-			| whileStmt
-			| block ;
+            | returnStmt
+            | whileStmt
+            | block ;
 
 exprStmt    → expression ";" ;
 ifStmt      → "if" "(" expression ")" statement ( "else" statement )? ;
@@ -37,7 +37,7 @@ assignment  → ( call "." )? IDENTIFIER "=" assignment
             | logic_or ;
 logic_or    → logic_and ( "or" logic_and )* ;
 logic_and   → binary_err ( "and" binary_err )* ;
-binary_err  → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") comma
+binary_err  → ("!=" | "==" | ">" | ">=" | "<" | "<=" | "+" | "/" | "*") ternary
             | ternary ;
 ternary     → equality ( "?" assignment ":" assignment )? ;
 equality    → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -52,13 +52,3 @@ primary     → "true" | "false" | "null" | "this"
             | NUMBER | STRING
             | "(" expression ")"
 		    | IDENTIFIER ;
-
-
-PRECEDENCE(highest first) AND ASSOCIATIVITY:
-
-Name	    Operators	Associates
-Unary	    ! -	        Right
-Factor	    / *	        Left
-Term	    - +	        Left
-Comparison	> >= < <=	Left
-Equality	== !=	    Left

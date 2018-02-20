@@ -7,9 +7,9 @@ namespace Lox
 {
 
     /// <summary>
-    /// Recursive descent parser
+    /// Recursive descent parser. See engineering Compilers page 119 for implementation tips for LR(1) aka shift reduce parser.
     /// </summary>
-    class ParserRD
+    class Parser
     {
         // As the parsing is recursive, to get out of error situations we need to unwind
         // stack to get the parser to a state where it can continue parsing again.
@@ -21,11 +21,13 @@ namespace Lox
             BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, PLUS, SLASH, STAR
         };
 
+
+
         private readonly List<Token> tokens;
         private int current = 0;
         private Token CurrentToken => tokens[current];
 
-        public ParserRD(List<Token> tokens)
+        public Parser(List<Token> tokens)
         {
             this.tokens = tokens;
         }

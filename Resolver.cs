@@ -28,6 +28,7 @@ namespace Lox
         {
             NONE,
             FUNCTION,
+            INITIALIZER,
             METHOD
         };
 
@@ -64,13 +65,14 @@ namespace Lox
             currentClass = ClassType.CLASS;
 
             BeginScope();
+
             CurrentScope.TryAdd("this", true);
 
-            stmt.methods.ForEach(m => ResolveFunction(m, FunctionType.METHOD));
+            stmt.methods.ForEach(m => ResolveFunction(m, (m.name.lexeme == "init" ? FunctionType.INITIALIZER : FunctionType.METHOD)));
 
             EndScope();
-            currentClass = ClassType.CLASS;
 
+            currentClass = enclosingClass;
             return null;
         }
 
@@ -122,7 +124,16 @@ namespace Lox
             {
                 Lox.Error(stmt.keyword, "Return statement must be inside a function.");
             }
-            if (stmt.value != null) Resolve(stmt.value);
+            if (stmt.value != null)
+            {
+                if (currentFunction == FunctionType.INITIALIZER)
+                {
+                    Lox.Error(stmt.keyword, "Cannot return a value from an initializer.");
+                }
+
+                Resolve(stmt.value);
+            }
+           
             return null;
         }
 

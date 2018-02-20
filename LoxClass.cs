@@ -17,7 +17,7 @@ namespace Lox
         {
             if (methods.TryGetValue(name, out LoxFunction fun))
             {
-                // Methods "this" is set to the instance that is is called from.
+                // Methods "this" is set to a given instance (from which instance it is accessed from).
                 return fun.Bind(instance);
             }
 
@@ -27,23 +27,29 @@ namespace Lox
         /// <summary>
         /// When a class is called with (), we construct a new instance of it.
         /// </summary>
-        /// <param name="interpreter"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            LoxInstance instance = new LoxInstance(this);
+            var instance = new LoxInstance(this);
+            if (methods.TryGetValue("init", out LoxFunction initializer))
+            {
+                initializer.Bind(instance).Call(interpreter, arguments);
+            }
             return instance;
         }
 
+        /// <summary>
+        /// Arity of class is the amount of arguments its init method wants.
+        /// </summary>
         public int Arity()
         {
-            return 0;
+            if (!methods.TryGetValue("init", out LoxFunction initializer))
+            {
+                return 0;
+            }
+            return initializer.Arity();
         }
 
-        public override string ToString()
-        {
-            return name;
-        }
+        public override string ToString() => name;
+
     }
 }

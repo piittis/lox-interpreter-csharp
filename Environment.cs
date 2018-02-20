@@ -61,26 +61,23 @@ namespace Lox
 
         public object GetAt(int distance, Token name)
         {
-            // Walk up the distance to the correct enclosing environment.
-            var environment = this;
-            for (int i = 0; i < distance; i++)
-            {
-                environment = environment.enclosing;
-            }
+            var env = Ancestor(distance);
+            var value = Ancestor(distance).values[name.lexeme];
 
-            if (environment.values.TryGetValue(name.lexeme, out object val))
+            if (ReferenceEquals(value, unAssigned))
             {
-                if (ReferenceEquals(val, unAssigned))
-                {
-                    throw new RuntimeError(name, $"Use of unassigned variable '{name.lexeme}'.");
-                }
-                return val;
+                throw new RuntimeError(name, $"Use of unassigned variable '{name.lexeme}'.");
             }
-
-            throw new RuntimeError(name, $"Undefined variable '{name.lexeme}'.");
+            return value;
         }
 
-        internal void AssignAt(int distance, Token name, object value)
+        public void AssignAt(int distance, Token name, object value)
+        {
+            var env = Ancestor(distance);
+            env.values[name.lexeme] = value;
+        }
+
+        private Environment Ancestor(int distance)
         {
             // Walk up the distance to the correct enclosing environment.
             var environment = this;
@@ -88,15 +85,7 @@ namespace Lox
             {
                 environment = environment.enclosing;
             }
-
-            if (environment.values.ContainsKey(name.lexeme))
-            {
-                environment.values[name.lexeme] = value;
-            }
-            else
-            {
-                throw new RuntimeError(name, $"Undefined variable '{name.lexeme}'.");
-            }
+            return environment;
         }
     }
 }

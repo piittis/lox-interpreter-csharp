@@ -19,7 +19,8 @@ namespace Lox
                     return val;
 
                 var method = klass.FindMethod(this, name.lexeme);
-                if (method != null) return method;
+                if (method != null)
+                    return method;
 
                 throw new RuntimeError(name, $"Undefined property '{name.lexeme}'");
             }

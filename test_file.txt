@@ -1,7 +1,47 @@
-﻿class Bacon {
-  eat() {
-    print "Crunch crunch crunch!";
+﻿class Foo {
+  init() {
+    print "Foo initialized";
+	this.bar = "value";
   }
+
+  func1() {
+	print "func1 called";
+
+	class InnerClass {
+		init() {
+			print "InnerClass initialized";
+		}
+	}
+
+	InnerClass();
+  }
+
+  func2() {
+	return 5+5/2*3+5/4+6/3*6+2-6;
+  }
+
 }
 
-Bacon().eat(); // Prints "Crunch crunch crunch!".
+class Testi1 {
+	init() {
+		this.name = "testi1";
+	}
+
+	printName() {
+		print this.name;
+	}
+}
+
+class Testi2 {
+	init() {
+		this.name = "testi2";	
+	}
+}
+
+
+var t1 = Testi1();
+var t2 = Testi2();
+
+t2.printName = t1.printName;
+
+t2.printName();

@@ -10,7 +10,7 @@ namespace Lox
 
         public readonly Environment globals = new Environment();
         private Environment environment;
-        // How many scopes are between variable refenrece and the variable itself. Resolved beforehand.
+        // How many scopes are between variable reference and the variable itself. Resolved beforehand.
         private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
         // For debugging:
@@ -103,7 +103,7 @@ namespace Lox
 
         public object VisitFunctionStmt(Stmt.Function stmt)
         {
-            LoxFunction function = new LoxFunction(stmt, environment);
+            LoxFunction function = new LoxFunction(stmt, environment, false);
             environment.Define(stmt.name.lexeme, function);
             return null;
         }
@@ -145,7 +145,7 @@ namespace Lox
         {
             environment.Define(stmt.name.lexeme, null);
 
-            var methods = stmt.methods.ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment));
+            var methods = stmt.methods.ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment, m.name.lexeme == "this"));
             LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
 
             environment.Assign(stmt.name, klass);
@@ -253,8 +253,7 @@ namespace Lox
 
         public object VisitGetExpr(Expr.Get expr)
         {
-            Object obj = Evaluate(expr.obj);
-            if (obj is LoxInstance instance)
+            if (Evaluate(expr.obj) is LoxInstance instance)
             {
                 return instance[expr.name];
             }
@@ -286,8 +285,8 @@ namespace Lox
 
         public object VisitLogicalExpr(Expr.Logical expr)
         {
-            // Return value is guaranteed to be truthy for truthy expression 
-            // and vice versa. Not necessarily true or false.
+            // Return value is guaranteed to be truthy for truthy expression and vice versa for falsy. 
+            // Not necessarily true or false.
             object left = Evaluate(expr.left);
 
             if (expr.op.type == OR)

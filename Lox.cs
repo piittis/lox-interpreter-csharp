@@ -51,7 +51,7 @@ namespace Lox
                 if (line != null)
                 {
                     List<Token> tokens = new Scanner(line).ScanTokens();
-                    List<Stmt> statements = new ParserRD(tokens).Parse();
+                    List<Stmt> statements = new Parser(tokens).Parse();
                     if (!hadError)
                     {
                         interpreter.Interpret(statements);
@@ -60,7 +60,7 @@ namespace Lox
 
                     // Normal statement parsing failed, try to parse as an expression.
                     hadError = false;
-                    Expr expr = new ParserRD(tokens).ParseExpression();
+                    Expr expr = new Parser(tokens).ParseExpression();
                     if (!hadError)
                     {
                         Console.WriteLine(interpreter.EvaluateExpr(expr));
@@ -88,12 +88,12 @@ namespace Lox
                 return;
             }
 
-            Console.WriteLine($"running:\n{source}");
+            Console.WriteLine($"Running code:\n----------\n{source}\n----------");
 
             var scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
 
-            var parser = new ParserRD(tokens);
+            var parser = new Parser(tokens);
             List<Stmt> statements = parser.Parse();
 
             if (hadErrors()) return;
