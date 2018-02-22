@@ -2,15 +2,17 @@
 
 namespace Lox
 {
-    class LoxClass : ICallable
+
+    class LoxClass : LoxInstance, ICallable, IClass
     {
         private readonly string name;
         private readonly Dictionary<string, LoxFunction> methods;
 
-        public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+        public LoxClass(string name, IClass instanceOf, Dictionary<string, LoxFunction> methods)
         {
             this.name = name;
             this.methods = methods;
+            base.SetClass(instanceOf);
         }
 
         public LoxFunction FindMethod(LoxInstance instance, string name)
@@ -29,6 +31,7 @@ namespace Lox
         /// </summary>
         public object Call(Interpreter interpreter, List<object> arguments)
         {
+            // Make a new instance of this class aka an object.
             var instance = new LoxInstance(this);
             if (methods.TryGetValue("init", out LoxFunction initializer))
             {

@@ -3,11 +3,12 @@
 namespace Lox
 {
     /// <summary>
-    /// Represents an instance of a class
+    /// Represents an instance of a class or metaclass. Instance contains properties that can be accessed.
+    /// If property not found as a field, try to find it from class methods.
     /// </summary>
     class LoxInstance
     {
-        private LoxClass klass;
+        private IClass instanceOf;
         private readonly Dictionary<string, object> fields = new Dictionary<string, object>();
 
         // Expose properties via an indexer.
@@ -18,7 +19,7 @@ namespace Lox
                 if (fields.TryGetValue(name.lexeme, out object val))
                     return val;
 
-                var method = klass.FindMethod(this, name.lexeme);
+                var method = instanceOf.FindMethod(this, name.lexeme);
                 if (method != null)
                     return method;
 
@@ -30,14 +31,22 @@ namespace Lox
             }
         }
 
-        public LoxInstance(LoxClass klass)
+        public LoxInstance(IClass klass)
         {
-            this.klass = klass;
+            SetClass(klass);
+        }
+
+        public LoxInstance() { }
+
+
+        public void SetClass(IClass klass)
+        {
+            instanceOf = klass;
         }
 
         public override string ToString()
         {
-            return klass.ToString() + " instance";
+            return instanceOf.ToString() + " instance";
         }
     }
 }

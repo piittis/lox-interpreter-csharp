@@ -22,7 +22,7 @@ template = Template("""namespace Lox
         public class {{type.className}} : {{baseclass}}
         {
             {%- for field in type.fields %}
-            public {{field.type}} {{field.name}};
+            public readonly {{field.type}} {{field.name}};
             {%- endfor %}
             
             public {{type.className}} ({%- for field in type.fields %} {{field.type}} {{field.name}}{%if not loop.last%},{%endif%} {%- endfor %})

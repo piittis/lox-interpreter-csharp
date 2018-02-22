@@ -22,6 +22,16 @@ namespace Lox
         };
 
 
+        private enum FunctionKind
+        {
+            FUNCTION = 0,
+            METHOD = 1
+        }
+        private static readonly Dictionary<FunctionKind, string> FunctionKindNames = new Dictionary<FunctionKind, string>()
+        {
+            { FunctionKind.FUNCTION, "function" },
+            { FunctionKind.METHOD, "method" }
+        };
 
         private readonly List<Token> tokens;
         private int current = 0;
@@ -66,7 +76,7 @@ namespace Lox
             try
             {
                 if (Match(CLASS)) return ClassDeclaration();
-                if (Match(FUN)) return Function("function");
+                if (Match(FUN)) return Function(FunctionKind.FUNCTION);
                 if (Match(VAR)) return VarDeclaration();
                 return Statement();
             } catch (ParseError)
@@ -84,7 +94,7 @@ namespace Lox
             List<Stmt.Function> methods = new List<Stmt.Function>();
             while (!IsCurrentTokenType(RIGHT_BRACE) && !IsAtEnd())
             {
-                methods.Add(Function("method"));
+                methods.Add(Function(FunctionKind.METHOD));
             }
 
             Consume(RIGHT_BRACE, "Expect '}' afater class body.");
@@ -111,7 +121,7 @@ namespace Lox
             if (Match(FOR)) return ForStatement();
             if (Match(IF)) return IfStatement();
             if (Match(PRINT)) return PrintStatement();
-            if (Match(RETURN)) return returnStatement();
+            if (Match(RETURN)) return ReturnStatement();
             if (Match(WHILE)) return WhileStatement();
             if (Match(LEFT_BRACE)) return new Stmt.Block(Block());
             return ExpressionStatement();
@@ -124,10 +134,14 @@ namespace Lox
             return new Stmt.Expression(expr);
         }
 
-        private Stmt.Function Function(string kind)
+        private Stmt.Function Function(FunctionKind kind)
         {
-            Token name = Consume(IDENTIFIER, $"Excpect {kind} name.");
-            Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+            // If method name is preceded with "class", it can be called as a static method.
+            bool isStaticMethod = (kind == FunctionKind.METHOD && Match(CLASS));
+
+            Token name = Consume(IDENTIFIER, $"Excpect {FunctionKindNames[kind]} name.");
+            Consume(LEFT_PAREN, $"Expect '(' after {FunctionKindNames[kind]} name.");
+
             var parameters = new List<Token>();
             if (!IsCurrentTokenType(RIGHT_PAREN))
             {
@@ -142,10 +156,10 @@ namespace Lox
             }
 
             Consume(RIGHT_PAREN, "Expect ')' after parameters.");
-            Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+            Consume(LEFT_BRACE, $"Expect '{{' before {FunctionKindNames[kind]} body.");
             List<Stmt> body = Block();
 
-            return new Stmt.Function(name, parameters, body);
+            return new Stmt.Function(name, parameters, body, isStaticMethod);
         }
 
         private Stmt ForStatement()
@@ -233,7 +247,7 @@ namespace Lox
             return new Stmt.Print(value);
         }
 
-        private Stmt returnStatement()
+        private Stmt ReturnStatement()
         {
             Token keyword = Previous();
             Expr value = null;

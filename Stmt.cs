@@ -23,7 +23,7 @@ namespace Lox
         
         public class Expression : Stmt
         {
-            public Expr expression;
+            public readonly Expr expression;
             
             public Expression ( Expr expression)
             {
@@ -34,24 +34,26 @@ namespace Lox
         }
         public class Function : Stmt
         {
-            public Token name;
-            public List<Token> parameters;
-            public List<Stmt> body;
+            public readonly Token name;
+            public readonly List<Token> parameters;
+            public readonly List<Stmt> body;
+            public readonly bool isStatic;
             
-            public Function ( Token name, List<Token> parameters, List<Stmt> body)
+            public Function ( Token name, List<Token> parameters, List<Stmt> body, bool isStatic)
             {
                 this.name = name;
                 this.parameters = parameters;
-                this.body = body;                
+                this.body = body;
+                this.isStatic = isStatic;                
             }
             
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitFunctionStmt(this); }
         }
         public class If : Stmt
         {
-            public Expr condition;
-            public Stmt thenBranch;
-            public Stmt elseBranch;
+            public readonly Expr condition;
+            public readonly Stmt thenBranch;
+            public readonly Stmt elseBranch;
             
             public If ( Expr condition, Stmt thenBranch, Stmt elseBranch)
             {
@@ -64,7 +66,7 @@ namespace Lox
         }
         public class Print : Stmt
         {
-            public Expr expression;
+            public readonly Expr expression;
             
             public Print ( Expr expression)
             {
@@ -75,8 +77,8 @@ namespace Lox
         }
         public class Return : Stmt
         {
-            public Token keyword;
-            public Expr value;
+            public readonly Token keyword;
+            public readonly Expr value;
             
             public Return ( Token keyword, Expr value)
             {
@@ -88,8 +90,8 @@ namespace Lox
         }
         public class While : Stmt
         {
-            public Expr condition;
-            public Stmt body;
+            public readonly Expr condition;
+            public readonly Stmt body;
             
             public While ( Expr condition, Stmt body)
             {
@@ -101,8 +103,8 @@ namespace Lox
         }
         public class Var : Stmt
         {
-            public Token name;
-            public Expr initializer;
+            public readonly Token name;
+            public readonly Expr initializer;
             
             public Var ( Token name, Expr initializer)
             {
@@ -114,7 +116,7 @@ namespace Lox
         }
         public class Block : Stmt
         {
-            public List<Stmt> statements;
+            public readonly List<Stmt> statements;
             
             public Block ( List<Stmt> statements)
             {
@@ -125,8 +127,8 @@ namespace Lox
         }
         public class Class : Stmt
         {
-            public Token name;
-            public List<Stmt.Function> methods;
+            public readonly Token name;
+            public readonly List<Stmt.Function> methods;
             
             public Class ( Token name, List<Stmt.Function> methods)
             {

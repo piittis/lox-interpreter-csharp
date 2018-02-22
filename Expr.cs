@@ -27,8 +27,8 @@ namespace Lox
         
         public class Assign : Expr
         {
-            public Token name;
-            public Expr value;
+            public readonly Token name;
+            public readonly Expr value;
             
             public Assign ( Token name, Expr value)
             {
@@ -40,9 +40,9 @@ namespace Lox
         }
         public class Binary : Expr
         {
-            public Expr left;
-            public Token op;
-            public Expr right;
+            public readonly Expr left;
+            public readonly Token op;
+            public readonly Expr right;
             
             public Binary ( Expr left, Token op, Expr right)
             {
@@ -55,9 +55,9 @@ namespace Lox
         }
         public class Call : Expr
         {
-            public Expr callee;
-            public Token paren;
-            public List<Expr> arguments;
+            public readonly Expr callee;
+            public readonly Token paren;
+            public readonly List<Expr> arguments;
             
             public Call ( Expr callee, Token paren, List<Expr> arguments)
             {
@@ -70,8 +70,8 @@ namespace Lox
         }
         public class Get : Expr
         {
-            public Expr obj;
-            public Token name;
+            public readonly Expr obj;
+            public readonly Token name;
             
             public Get ( Expr obj, Token name)
             {
@@ -83,7 +83,7 @@ namespace Lox
         }
         public class Grouping : Expr
         {
-            public Expr expression;
+            public readonly Expr expression;
             
             public Grouping ( Expr expression)
             {
@@ -94,7 +94,7 @@ namespace Lox
         }
         public class Literal : Expr
         {
-            public object value;
+            public readonly object value;
             
             public Literal ( object value)
             {
@@ -105,9 +105,9 @@ namespace Lox
         }
         public class Logical : Expr
         {
-            public Expr left;
-            public Token op;
-            public Expr right;
+            public readonly Expr left;
+            public readonly Token op;
+            public readonly Expr right;
             
             public Logical ( Expr left, Token op, Expr right)
             {
@@ -120,9 +120,9 @@ namespace Lox
         }
         public class Set : Expr
         {
-            public Expr obj;
-            public Token name;
-            public Expr value;
+            public readonly Expr obj;
+            public readonly Token name;
+            public readonly Expr value;
             
             public Set ( Expr obj, Token name, Expr value)
             {
@@ -135,7 +135,7 @@ namespace Lox
         }
         public class This : Expr
         {
-            public Token keyword;
+            public readonly Token keyword;
             
             public This ( Token keyword)
             {
@@ -146,8 +146,8 @@ namespace Lox
         }
         public class Unary : Expr
         {
-            public Token op;
-            public Expr right;
+            public readonly Token op;
+            public readonly Expr right;
             
             public Unary ( Token op, Expr right)
             {
@@ -159,8 +159,8 @@ namespace Lox
         }
         public class Comma : Expr
         {
-            public Expr left;
-            public Expr right;
+            public readonly Expr left;
+            public readonly Expr right;
             
             public Comma ( Expr left, Expr right)
             {
@@ -172,9 +172,9 @@ namespace Lox
         }
         public class Ternary : Expr
         {
-            public Expr condition;
-            public Expr ifTrue;
-            public Expr ifFalse;
+            public readonly Expr condition;
+            public readonly Expr ifTrue;
+            public readonly Expr ifFalse;
             
             public Ternary ( Expr condition, Expr ifTrue, Expr ifFalse)
             {
@@ -187,7 +187,7 @@ namespace Lox
         }
         public class Variable : Expr
         {
-            public Token name;
+            public readonly Token name;
             
             public Variable ( Token name)
             {

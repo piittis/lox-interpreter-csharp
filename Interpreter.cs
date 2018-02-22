@@ -145,8 +145,18 @@ namespace Lox
         {
             environment.Define(stmt.name.lexeme, null);
 
-            var methods = stmt.methods.ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment, m.name.lexeme == "this"));
-            LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+            var staticMethods = stmt.methods.Where(m => m.isStatic)
+                                            .ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment, m.name.lexeme == "this"));
+
+            MetaClass metaClass = new MetaClass($"{stmt.name.lexeme}Meta", staticMethods);
+
+            var methods = stmt.methods.Where(m => !m.isStatic)
+                                      .ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment, m.name.lexeme == "this"));
+
+            LoxClass klass = new LoxClass(stmt.name.lexeme, metaClass, methods);
+
+            var staticInitilizer = metaClass.FindMethod(klass, "init");
+            staticInitilizer?.Call(this, null);
 
             environment.Assign(stmt.name, klass);
             return null;

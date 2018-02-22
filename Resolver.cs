@@ -289,6 +289,12 @@ namespace Lox
             currentFunction = type;
 
             BeginScope();
+
+            if (function.isStatic && type == FunctionType.INITIALIZER && function.parameters.Any())
+            {
+                Lox.Error(function.name, $"Static initializer should not take any parameters.");
+            }
+
             foreach (var param in function.parameters)
             {
                 Declare(param);

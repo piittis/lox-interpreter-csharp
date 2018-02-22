@@ -1,47 +1,21 @@
-﻿class Foo {
-  init() {
-    print "Foo initialized";
-	this.bar = "value";
-  }
-
-  func1() {
-	print "func1 called";
-
-	class InnerClass {
-		init() {
-			print "InnerClass initialized";
-		}
+﻿class Math {
+	
+	class init() {
+		this.testiValue = "testi22";
 	}
 
-	InnerClass();
-  }
-
-  func2() {
-	return 5+5/2*3+5/4+6/3*6+2-6;
-  }
-
-}
-
-class Testi1 {
 	init() {
-		this.name = "testi1";
+		this.testiValue = "testi111";
 	}
 
-	printName() {
-		print this.name;
+	testi(n) {
+		return this.testiValue;
 	}
+
+	class testi(n) {
+		return this.testiValue;
+	}
+
 }
-
-class Testi2 {
-	init() {
-		this.name = "testi2";	
-	}
-}
-
-
-var t1 = Testi1();
-var t2 = Testi2();
-
-t2.printName = t1.printName;
-
-t2.printName();
+print Math.testi(5);
+print Math().testi(5);
