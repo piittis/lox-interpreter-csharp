@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Lox
 {
@@ -88,7 +89,9 @@ namespace Lox
                 return;
             }
 
-            Console.WriteLine($"Running code:\n----------\n{source}\n----------");
+            string sourceWithLineNumbers = source.Split("\n").Select((line, index) => $"{index+1}\t{line}").Join("\n");
+
+            Console.WriteLine($"Running code:\n----------\n{sourceWithLineNumbers}\n----------");
 
             var scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();

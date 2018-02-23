@@ -1,21 +1,77 @@
-﻿class Math {
-	
-	class init() {
-		this.testiValue = "testi22";
+﻿class Element {
+	init(data, next) {
+		this.data = data;
+		this.next = next;
 	}
-
-	init() {
-		this.testiValue = "testi111";
-	}
-
-	testi(n) {
-		return this.testiValue;
-	}
-
-	class testi(n) {
-		return this.testiValue;
-	}
-
 }
-print Math.testi(5);
-print Math().testi(5);
+
+class List {
+	
+	init() {
+		this.head = nil;
+	}
+
+	append(data) {
+		if (!this.head)
+		{
+			this.head = Element(data, nil);
+		}
+
+		var el = this.head;
+		while (el.next)
+		{
+			el = el.next;
+		}
+		el.next = Element(data, nil);
+
+		return this.append;
+	}
+
+	printList() {
+		print "elements in list:";
+		var el = this.head;
+		while (el.next)
+		{
+			print el.data;
+			el = el.next;
+		}
+	}
+
+	bubbleSort() {
+	
+		if (!this.head) {return;}
+
+		var sorted = false;
+
+		while(!sorted)
+		{
+			var prev = this.head;
+			var cur = prev.next;
+			var swaps = false;
+			while(cur)
+			{
+				if (cur.data < prev.data)
+				{
+					var temp = prev.data;
+					prev.data = cur.data;
+					cur.data = temp;
+					swaps = true;
+				}
+				prev = cur;
+				cur = cur.next;
+			}
+			sorted = !swaps;
+
+			this.printList();
+			print sorted;
+		}
+	}	
+}
+
+
+var list = List();
+list.append(2)(3)(5)(5)(2)(8)(5)(0);
+list.printList();
+print "sort";
+list.bubbleSort();
+list.printList();

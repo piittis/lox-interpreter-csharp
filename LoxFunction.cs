@@ -10,6 +10,9 @@ namespace Lox
         private readonly Environment closure;
         private readonly bool isInitializer;
 
+        // C# getter that tells if this LoxFunction is also a getter. When getter is "got", we execute its body and return the result.
+        public bool IsGetter => declaration.isGetter;
+
         public LoxFunction(Stmt.Function declaration, Environment closure, bool isInitializer)
         {
             this.declaration = declaration;

@@ -5,9 +5,11 @@ declaration → classDecl
             | varDecl
             | statement ;
 
-classDecl   → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" ( "class"? function )* "}" ;
+classDecl   → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" ( "class"? ( getter | function ) )* "}" ;
 
 funDecl     → "fun" function ;
+
+getter      → IDENTIFIER block ;
 
 function    → IDENTIFIER "(" parameters? ")" block ;
 

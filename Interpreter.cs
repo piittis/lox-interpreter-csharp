@@ -265,7 +265,13 @@ namespace Lox
         {
             if (Evaluate(expr.obj) is LoxInstance instance)
             {
-                return instance[expr.name];
+                var value = instance[expr.name];
+                if (value is LoxFunction function && function.IsGetter)
+                {
+                    value = function.Call(this, null);
+                }
+
+                return value;
             }
 
             throw new RuntimeError(expr.name, "Only instances have properties");
@@ -378,7 +384,7 @@ namespace Lox
 
         private bool IsEqual(object a, object b)
         {
-            if (a == null && b == null) return false;
+            if (a == null && b == null) return true;
             if (a == null) return false;
 
             return a.Equals(b);

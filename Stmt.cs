@@ -38,13 +38,15 @@ namespace Lox
             public readonly List<Token> parameters;
             public readonly List<Stmt> body;
             public readonly bool isStatic;
+            public readonly bool isGetter;
             
-            public Function ( Token name, List<Token> parameters, List<Stmt> body, bool isStatic)
+            public Function ( Token name, List<Token> parameters, List<Stmt> body, bool isStatic, bool isGetter)
             {
                 this.name = name;
                 this.parameters = parameters;
                 this.body = body;
-                this.isStatic = isStatic;                
+                this.isStatic = isStatic;
+                this.isGetter = isGetter;                
             }
             
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitFunctionStmt(this); }

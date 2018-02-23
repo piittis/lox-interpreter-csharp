@@ -1,5 +1,5 @@
 ﻿Expression : Expr expression
-Function   : Token name, List<Token> parameters, List<Stmt> body, bool isStatic
+Function   : Token name, List<Token> parameters, List<Stmt> body, bool isStatic, bool isGetter
 If	       : Expr condition, Stmt thenBranch, Stmt elseBranch
 Print      : Expr expression
 Return     : Token keyword, Expr value

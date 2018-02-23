@@ -25,12 +25,14 @@ namespace Lox
         private enum FunctionKind
         {
             FUNCTION = 0,
-            METHOD = 1
+            METHOD = 1,
+            GETTER = 2
         }
         private static readonly Dictionary<FunctionKind, string> FunctionKindNames = new Dictionary<FunctionKind, string>()
         {
             { FunctionKind.FUNCTION, "function" },
-            { FunctionKind.METHOD, "method" }
+            { FunctionKind.METHOD, "method" },
+            { FunctionKind.GETTER, "getter" }
         };
 
         private readonly List<Token> tokens;
@@ -136,10 +138,19 @@ namespace Lox
 
         private Stmt.Function Function(FunctionKind kind)
         {
-            // If method name is preceded with "class", it can be called as a static method.
+            // If method name is preceded with "class", it can be called as a static method/getter.
             bool isStaticMethod = (kind == FunctionKind.METHOD && Match(CLASS));
 
-            Token name = Consume(IDENTIFIER, $"Excpect {FunctionKindNames[kind]} name.");
+            Token name = Consume(IDENTIFIER, $"Expect {FunctionKindNames[kind]} name.");
+
+            // try to match a getter.
+            if (kind == FunctionKind.METHOD && Match(LEFT_BRACE))
+            {
+                kind = FunctionKind.GETTER;
+                List<Stmt>  getterBody = Block();
+                return new Stmt.Function(name, new List<Token>(), getterBody, isStaticMethod, isGetter: true);
+            }
+
             Consume(LEFT_PAREN, $"Expect '(' after {FunctionKindNames[kind]} name.");
 
             var parameters = new List<Token>();
@@ -159,7 +170,7 @@ namespace Lox
             Consume(LEFT_BRACE, $"Expect '{{' before {FunctionKindNames[kind]} body.");
             List<Stmt> body = Block();
 
-            return new Stmt.Function(name, parameters, body, isStaticMethod);
+            return new Stmt.Function(name, parameters, body, isStaticMethod, isGetter: false);
         }
 
         private Stmt ForStatement()

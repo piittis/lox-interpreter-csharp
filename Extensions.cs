@@ -2,7 +2,7 @@
 
 namespace Lox
 {
-    static class DictionaryExtensions
+    static class Extensions
     {
         public static void AddOrUpdate<T, U>(this Dictionary<T, U> dict, T key, U value)
         {
@@ -10,6 +10,11 @@ namespace Lox
                 dict[key] = value;
             else
                 dict.Add(key, value);
+        }
+
+        public static string Join(this IEnumerable<string> values, string seperator)
+        {
+            return string.Join(seperator, values);
         }
     }
 }
