@@ -91,6 +91,14 @@ namespace Lox
         private Stmt ClassDeclaration()
         {
             Token name = Consume(IDENTIFIER, "Expect class name.");
+
+            Expr superclass = null;
+            if (Match(LESS))
+            {
+                Consume(IDENTIFIER, "Expect superclass name.");
+                superclass = new Expr.Variable(Previous());
+            }
+
             Consume(LEFT_BRACE, "Expect '{' before class body.");
 
             List<Stmt.Function> methods = new List<Stmt.Function>();
@@ -101,7 +109,7 @@ namespace Lox
 
             Consume(RIGHT_BRACE, "Expect '}' afater class body.");
 
-            return new Stmt.Class(name, methods);
+            return new Stmt.Class(name, superclass, methods);
         }
 
         private Stmt VarDeclaration()
@@ -503,6 +511,14 @@ namespace Lox
 
             if (Match(out Token matchedToken, NUMBER, STRING))
                 return new Expr.Literal(matchedToken.literal);
+
+            if (Match(SUPER))
+            {
+                Token keyword = Previous();
+                Consume(DOT, "Excpect '.' after 'super'.");
+                Token method = Consume(IDENTIFIER, "Expect superclass method name.");
+                return new Expr.Super(keyword, method);
+            }
 
             if (Match(FALSE)) return new Expr.Literal(false);
             if (Match(TRUE)) return new Expr.Literal(true);

@@ -10,6 +10,7 @@ namespace Lox
 
         // All variables have this value before they are initialized or assigned.
         public static readonly object unAssigned = new object();
+        public Environment Enclosing => enclosing;
 
         public Environment()
         {
@@ -68,6 +69,13 @@ namespace Lox
             {
                 throw new RuntimeError(name, $"Use of unassigned variable '{name.lexeme}'.");
             }
+            return value;
+        }
+
+        public object GetAt(int distance, string name)
+        {
+            var env = Ancestor(distance);
+            var value = Ancestor(distance).values[name];
             return value;
         }
 

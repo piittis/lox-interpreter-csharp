@@ -101,6 +101,11 @@ namespace Lox
             return $"({expr.obj.Accept(this)}{expr.name} <- {expr.value.Accept(this)})";
         }
 
+        public string VisitSuperExpr(Expr.Super expr)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitTernaryExpr(Expr.Ternary expr)
         {
             return $"({expr.condition.Accept(this)} ? {expr.ifTrue.Accept(this)} : {expr.ifFalse.Accept(this)})";

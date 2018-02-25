@@ -20,10 +20,11 @@ namespace Lox
             this.isInitializer = isInitializer;
         }
 
-        public LoxFunction Bind(LoxInstance instance)
+        public LoxFunction Bind(LoxInstance instance, IClass superClass)
         {
             var environment = new Environment(closure);
             environment.Define("this", instance);
+            environment.Define("super", superClass);
             return new LoxFunction(declaration, environment, isInitializer);
         }
 

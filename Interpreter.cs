@@ -7,10 +7,11 @@ namespace Lox
 {
     class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object>
     {
+  
 
         public readonly Environment globals = new Environment();
         private Environment environment;
-        // How many scopes are between variable reference and the variable itself. Resolved beforehand.
+        // How many scopes are between variable reference and the variable itself. Resolved beforehand by the Resolver class.
         private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
         // For debugging:
@@ -145,15 +146,29 @@ namespace Lox
         {
             environment.Define(stmt.name.lexeme, null);
 
+            // Try to inherit if superclass is defined.
+            object superclass = null;
+            if (stmt.superclass != null)
+            {
+                superclass = Evaluate(stmt.superclass);
+                if (!(superclass is LoxClass))
+                {
+                    throw new RuntimeError(stmt.name, "Superclass must be a class");
+                }
+            }
+
+            // Static methods are attached to the metaclass.
             var staticMethods = stmt.methods.Where(m => m.isStatic)
                                             .ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment, m.name.lexeme == "this"));
 
-            MetaClass metaClass = new MetaClass($"{stmt.name.lexeme}Meta", staticMethods);
+            // Metaclass inherits the metaclass of the superclass, if it exists.
+            var metaClass = new MetaClass($"{stmt.name.lexeme}Meta", ((LoxInstance)superclass)?.InstanceOf, staticMethods);
 
+            // Normal methods go to the class.
             var methods = stmt.methods.Where(m => !m.isStatic)
                                       .ToDictionary(m => m.name.lexeme, m => new LoxFunction(m, environment, m.name.lexeme == "this"));
 
-            LoxClass klass = new LoxClass(stmt.name.lexeme, metaClass, methods);
+            var klass = new LoxClass(stmt.name.lexeme, (IClass)superclass, metaClass, methods);
 
             var staticInitilizer = metaClass.FindMethod(klass, "init");
             staticInitilizer?.Call(this, null);
@@ -335,6 +350,18 @@ namespace Lox
             }
 
             throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+
+        public object VisitSuperExpr(Expr.Super expr)
+        {
+            int distance = locals[expr];
+
+            // Find reference to the superclass and current instance ("this").
+            IClass superclass = (IClass)environment.GetAt(distance, "super");
+            LoxInstance thisInstance = (LoxInstance)environment.GetAt(distance, "this");
+            // Find method from superclass.
+            LoxFunction method = superclass.FindMethod(thisInstance, expr.method.lexeme);
+            return method;
         }
 
         public object VisitThisExpr(Expr.This expr)

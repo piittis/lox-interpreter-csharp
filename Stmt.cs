@@ -25,7 +25,7 @@ namespace Lox
         {
             public readonly Expr expression;
             
-            public Expression ( Expr expression)
+            public Expression (Expr expression)
             {
                 this.expression = expression;                
             }
@@ -40,7 +40,7 @@ namespace Lox
             public readonly bool isStatic;
             public readonly bool isGetter;
             
-            public Function ( Token name, List<Token> parameters, List<Stmt> body, bool isStatic, bool isGetter)
+            public Function (Token name, List<Token> parameters, List<Stmt> body, bool isStatic, bool isGetter)
             {
                 this.name = name;
                 this.parameters = parameters;
@@ -57,7 +57,7 @@ namespace Lox
             public readonly Stmt thenBranch;
             public readonly Stmt elseBranch;
             
-            public If ( Expr condition, Stmt thenBranch, Stmt elseBranch)
+            public If (Expr condition, Stmt thenBranch, Stmt elseBranch)
             {
                 this.condition = condition;
                 this.thenBranch = thenBranch;
@@ -70,7 +70,7 @@ namespace Lox
         {
             public readonly Expr expression;
             
-            public Print ( Expr expression)
+            public Print (Expr expression)
             {
                 this.expression = expression;                
             }
@@ -82,7 +82,7 @@ namespace Lox
             public readonly Token keyword;
             public readonly Expr value;
             
-            public Return ( Token keyword, Expr value)
+            public Return (Token keyword, Expr value)
             {
                 this.keyword = keyword;
                 this.value = value;                
@@ -95,7 +95,7 @@ namespace Lox
             public readonly Expr condition;
             public readonly Stmt body;
             
-            public While ( Expr condition, Stmt body)
+            public While (Expr condition, Stmt body)
             {
                 this.condition = condition;
                 this.body = body;                
@@ -108,7 +108,7 @@ namespace Lox
             public readonly Token name;
             public readonly Expr initializer;
             
-            public Var ( Token name, Expr initializer)
+            public Var (Token name, Expr initializer)
             {
                 this.name = name;
                 this.initializer = initializer;                
@@ -120,7 +120,7 @@ namespace Lox
         {
             public readonly List<Stmt> statements;
             
-            public Block ( List<Stmt> statements)
+            public Block (List<Stmt> statements)
             {
                 this.statements = statements;                
             }
@@ -130,11 +130,13 @@ namespace Lox
         public class Class : Stmt
         {
             public readonly Token name;
+            public readonly Expr superclass;
             public readonly List<Stmt.Function> methods;
             
-            public Class ( Token name, List<Stmt.Function> methods)
+            public Class (Token name, Expr superclass, List<Stmt.Function> methods)
             {
                 this.name = name;
+                this.superclass = superclass;
                 this.methods = methods;                
             }
             

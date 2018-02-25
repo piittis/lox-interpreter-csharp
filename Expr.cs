@@ -16,6 +16,7 @@ namespace Lox
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
             T VisitSetExpr(Set expr);
+            T VisitSuperExpr(Super expr);
             T VisitThisExpr(This expr);
             T VisitUnaryExpr(Unary expr);
             T VisitCommaExpr(Comma expr);
@@ -30,7 +31,7 @@ namespace Lox
             public readonly Token name;
             public readonly Expr value;
             
-            public Assign ( Token name, Expr value)
+            public Assign (Token name, Expr value)
             {
                 this.name = name;
                 this.value = value;                
@@ -44,7 +45,7 @@ namespace Lox
             public readonly Token op;
             public readonly Expr right;
             
-            public Binary ( Expr left, Token op, Expr right)
+            public Binary (Expr left, Token op, Expr right)
             {
                 this.left = left;
                 this.op = op;
@@ -59,7 +60,7 @@ namespace Lox
             public readonly Token paren;
             public readonly List<Expr> arguments;
             
-            public Call ( Expr callee, Token paren, List<Expr> arguments)
+            public Call (Expr callee, Token paren, List<Expr> arguments)
             {
                 this.callee = callee;
                 this.paren = paren;
@@ -73,7 +74,7 @@ namespace Lox
             public readonly Expr obj;
             public readonly Token name;
             
-            public Get ( Expr obj, Token name)
+            public Get (Expr obj, Token name)
             {
                 this.obj = obj;
                 this.name = name;                
@@ -85,7 +86,7 @@ namespace Lox
         {
             public readonly Expr expression;
             
-            public Grouping ( Expr expression)
+            public Grouping (Expr expression)
             {
                 this.expression = expression;                
             }
@@ -96,7 +97,7 @@ namespace Lox
         {
             public readonly object value;
             
-            public Literal ( object value)
+            public Literal (object value)
             {
                 this.value = value;                
             }
@@ -109,7 +110,7 @@ namespace Lox
             public readonly Token op;
             public readonly Expr right;
             
-            public Logical ( Expr left, Token op, Expr right)
+            public Logical (Expr left, Token op, Expr right)
             {
                 this.left = left;
                 this.op = op;
@@ -124,7 +125,7 @@ namespace Lox
             public readonly Token name;
             public readonly Expr value;
             
-            public Set ( Expr obj, Token name, Expr value)
+            public Set (Expr obj, Token name, Expr value)
             {
                 this.obj = obj;
                 this.name = name;
@@ -133,11 +134,24 @@ namespace Lox
             
             public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitSetExpr(this); }
         }
+        public class Super : Expr
+        {
+            public readonly Token keyword;
+            public readonly Token method;
+            
+            public Super (Token keyword, Token method)
+            {
+                this.keyword = keyword;
+                this.method = method;                
+            }
+            
+            public override T Accept<T>(IVisitor<T> visitor) { return visitor.VisitSuperExpr(this); }
+        }
         public class This : Expr
         {
             public readonly Token keyword;
             
-            public This ( Token keyword)
+            public This (Token keyword)
             {
                 this.keyword = keyword;                
             }
@@ -149,7 +163,7 @@ namespace Lox
             public readonly Token op;
             public readonly Expr right;
             
-            public Unary ( Token op, Expr right)
+            public Unary (Token op, Expr right)
             {
                 this.op = op;
                 this.right = right;                
@@ -162,7 +176,7 @@ namespace Lox
             public readonly Expr left;
             public readonly Expr right;
             
-            public Comma ( Expr left, Expr right)
+            public Comma (Expr left, Expr right)
             {
                 this.left = left;
                 this.right = right;                
@@ -176,7 +190,7 @@ namespace Lox
             public readonly Expr ifTrue;
             public readonly Expr ifFalse;
             
-            public Ternary ( Expr condition, Expr ifTrue, Expr ifFalse)
+            public Ternary (Expr condition, Expr ifTrue, Expr ifFalse)
             {
                 this.condition = condition;
                 this.ifTrue = ifTrue;
@@ -189,7 +203,7 @@ namespace Lox
         {
             public readonly Token name;
             
-            public Variable ( Token name)
+            public Variable (Token name)
             {
                 this.name = name;                
             }

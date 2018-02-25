@@ -11,6 +11,8 @@ namespace Lox
         private IClass instanceOf;
         private readonly Dictionary<string, object> fields = new Dictionary<string, object>();
 
+        public IClass InstanceOf => instanceOf;
+
         // Expose properties via an indexer.
         public object this[Token name]
         {

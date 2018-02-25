@@ -35,7 +35,8 @@ namespace Lox
         private enum ClassType
         {
             NONE,
-            CLASS
+            CLASS,
+            SUBCLASS
         };
 
         public Resolver(Interpreter interpreter)
@@ -65,11 +66,14 @@ namespace Lox
             currentClass = ClassType.CLASS;
 
             BeginScope();
-
+            if (stmt.superclass != null)
+            {
+                currentClass = ClassType.SUBCLASS;
+                Resolve(stmt.superclass);
+                CurrentScope.TryAdd("super", true);
+            }
             CurrentScope.TryAdd("this", true);
-
             stmt.methods.ForEach(m => ResolveFunction(m, (m.name.lexeme == "init" ? FunctionType.INITIALIZER : FunctionType.METHOD)));
-
             EndScope();
 
             currentClass = enclosingClass;
@@ -212,6 +216,17 @@ namespace Lox
         {
             Resolve(expr.value);
             Resolve(expr.obj);
+            return null;
+        }
+
+        public object VisitSuperExpr(Expr.Super expr)
+        {
+            if (currentClass != ClassType.SUBCLASS)
+            {
+                Lox.Error(expr.keyword, "Cannot use 'super' outside of a class that has a superclass.");
+            }
+            
+            ResolveLocal(expr, expr.keyword);
             return null;
         }
 
